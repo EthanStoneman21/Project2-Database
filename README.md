@@ -1,18 +1,17 @@
 **Project description**
 
-Consider to create the user table using the following CREATE TABLE stmt:
+SQL Tables used:
 
 ```SQL
-CREATE TABLE Users (
-  userid INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(50),
-  password VARCHAR(255),
+CREATE TABLE client (
+  clientid INT PRIMARY KEY,
   firstname VARCHAR(50),
   lastname VARCHAR(50),
-  salary FLOAT,
-  age INT,
-  registerday DATE,
-  signintime DATETIME
+  password VARCHAR(255),
+  email VARCHAR(255),
+  address VARCHAR(255),
+  phonenum VARCHAR(255),
+  creditcard DATETIME
 );
 ```
 
