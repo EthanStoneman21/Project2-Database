@@ -11,7 +11,57 @@ CREATE TABLE client (
   email VARCHAR(255),
   address VARCHAR(255),
   phonenum VARCHAR(255),
-  creditcard DATETIME
+  creditcard VARCHAR(255),
+  clientdate DATETIME
+);
+
+CREATE TABLE servicereq (
+  requestid INT PRIMARY KEY,
+  reqaddress VARCHAR(255),
+  cleaningtype VARCHAR(255),
+  numofrooms INT,
+  budget FLOAT,
+  servicenotes VARCHAR(255),
+  servicestatus BOOL,
+  servicedate DATETIME
+);
+
+CREATE TABLE order (
+  orderid INT PRIMARY KEY,
+  typeoforder VARCHAR(255),
+  finalprice FLOAT,
+  ordernotes VARCHAR(255),
+  orderstatus BOOL,
+  orderdate DATETIME,
+);
+
+CREATE TABLE bill (
+  billid INT PRIMARY KEY,
+  typeoforder VARCHAR(255),
+  finalprice FLOAT,
+  discounts FLOAT,
+  adjustments FLOAT,
+  billnotes VARCHAR(255),
+  explanations VARCHAR(255),
+  disputes VARCHAR(255),
+  ispaid BOOL,
+  paydate DATETIME,
+  FOREIGN KEY finalprice REFERENCES order
+);
+
+CREATE TABLE messages (
+  messageid INT PRIMARY KEY,
+  servicenotes VARCHAR(255),
+  ordernotes VARCHAR(255),
+  billnotes VARCHAR(255),
+  explanations VARCHAR(255),
+  disputes VARCHAR(255),
+  messagedate DATETIME,
+  FOREIGN KEY servicenotes REFERENCES servicereq,
+  FOREIGN KEY ordernotes REFERENCES order,
+  FOREIGN KEY billnotes REFERENCES bill,
+  FOREIGN KEY explanations REFERENCES bill,
+  FOREIGN KEY disputes REFERENCES bill
 );
 ```
 
