@@ -5,63 +5,65 @@ SQL Tables used:
 ```SQL
 CREATE TABLE client (
   clientid INT PRIMARY KEY,
-  firstname VARCHAR(50),
-  lastname VARCHAR(50),
-  password VARCHAR(255),
-  email VARCHAR(255),
-  address VARCHAR(255),
-  phonenum VARCHAR(255),
-  creditcard VARCHAR(255),
+  firstname VARCHAR(50) NOT NULL,
+  lastname VARCHAR(50) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  phonenum VARCHAR(255) NOT NULL,
+  creditcard VARCHAR(255) NOT NULL,
   clientdate DATETIME
 );
 
 CREATE TABLE servicereq (
   requestid INT PRIMARY KEY,
-  reqaddress VARCHAR(255),
-  cleaningtype VARCHAR(255),
-  numofrooms INT,
-  budget FLOAT,
-  servicenotes VARCHAR(255),
+  clientid INT,
+  reqaddress VARCHAR(255) NOT NULL,
+  cleaningtype VARCHAR(255) NOT NULL,
+  numofrooms INT NOT NULL,
+  budget DECIMAL(10,2) NOT NULL,
+  servicenotes VARCHAR(500),
   servicestatus BOOL,
-  servicedate DATETIME
+  servicedate DATETIME,
+  FOREIGN KEY (clientid) REFERENCES client(clientid)
 );
 
-CREATE TABLE order (
+CREATE TABLE orders (
   orderid INT PRIMARY KEY,
-  typeoforder VARCHAR(255),
-  finalprice FLOAT,
-  ordernotes VARCHAR(255),
+  requestid INT,
+  typeoforder VARCHAR(255) NOT NULL,
+  finalprice DECIMAL(10,2) NOT NULL,
+  ordernotes VARCHAR(500),
   orderstatus BOOL,
   orderdate DATETIME,
+  FOREIGN KEY (requestid) REFERENCES servicereq(requestid)
 );
 
 CREATE TABLE bill (
   billid INT PRIMARY KEY,
-  typeoforder VARCHAR(255),
-  finalprice FLOAT,
-  discounts FLOAT,
-  adjustments FLOAT,
-  billnotes VARCHAR(255),
-  explanations VARCHAR(255),
-  disputes VARCHAR(255),
+  orderid INT,
+  typeoforder VARCHAR(255) NOT NULL,
+  finalprice DECIMAL(10,2) NOT NULL,
+  discounts DECIMAL(10,2),
+  adjustments DECIMAL(10,2),
+  billnotes VARCHAR(500),
+  explanations VARCHAR(500),
+  disputes VARCHAR(500),
   ispaid BOOL,
   paydate DATETIME,
-  FOREIGN KEY finalprice REFERENCES order
+  FOREIGN KEY (orderid) REFERENCES orders(orderid)
 );
 
 CREATE TABLE messages (
-  messageid INT PRIMARY KEY,
-  servicenotes VARCHAR(255),
-  ordernotes VARCHAR(255),
-  billnotes VARCHAR(255),
-  explanations VARCHAR(255),
-  disputes VARCHAR(255),
+  messageid INT PRIMARY KEY AUTO_INCREMENT,
+  requestid INT,
+  orderid INT,
+  billid INT,
+  messagebody VARCHAR(500),
   messagedate DATETIME,
-  FOREIGN KEY servicenotes REFERENCES servicereq,
-  FOREIGN KEY ordernotes REFERENCES order,
-  FOREIGN KEY billnotes REFERENCES bill,
-  FOREIGN KEY explanations REFERENCES bill,
-  FOREIGN KEY disputes REFERENCES bill
+  FOREIGN KEY (requestid) REFERENCES servicereq(requestid),
+  FOREIGN KEY (orderid) REFERENCES orders(orderid),
+  FOREIGN KEY (billid) REFERENCES bill(billid)
 );
 ```
 
