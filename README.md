@@ -55,7 +55,7 @@ CREATE TABLE bill (
 );
 
 CREATE TABLE messages (
-  messageid INT PRIMARY KEY AUTO_INCREMENT,
+  messageid INT PRIMARY KEY,
   requestid INT,
   orderid INT,
   billid INT,
