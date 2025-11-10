@@ -4,7 +4,7 @@ SQL Tables used:
 
 ```SQL
 CREATE TABLE client (
-  clientid INT PRIMARY KEY,
+  clientid VARCHAR(36) PRIMARY KEY,
   firstname VARCHAR(50) NOT NULL,
   lastname VARCHAR(50) NOT NULL,
   password VARCHAR(255) NOT NULL,
@@ -16,8 +16,8 @@ CREATE TABLE client (
 );
 
 CREATE TABLE servicereq (
-  requestid INT PRIMARY KEY,
-  clientid INT,
+  requestid VARCHAR(36) PRIMARY KEY,
+  clientid VARCHAR(36),
   reqaddress VARCHAR(255) NOT NULL,
   cleaningtype VARCHAR(255) NOT NULL,
   numofrooms INT NOT NULL,
@@ -29,8 +29,8 @@ CREATE TABLE servicereq (
 );
 
 CREATE TABLE orders (
-  orderid INT PRIMARY KEY,
-  requestid INT,
+  orderid VARCHAR(36) PRIMARY KEY,
+  requestid VARCHAR(36),
   typeoforder VARCHAR(255) NOT NULL,
   finalprice DECIMAL(10,2) NOT NULL,
   ordernotes VARCHAR(500),
@@ -40,8 +40,8 @@ CREATE TABLE orders (
 );
 
 CREATE TABLE bill (
-  billid INT PRIMARY KEY,
-  orderid INT,
+  billid VARCHAR(36) PRIMARY KEY,
+  orderid VARCHAR(36),
   typeoforder VARCHAR(255) NOT NULL,
   finalprice DECIMAL(10,2) NOT NULL,
   discounts DECIMAL(10,2),
@@ -55,10 +55,10 @@ CREATE TABLE bill (
 );
 
 CREATE TABLE messages (
-  messageid INT PRIMARY KEY,
-  requestid INT,
-  orderid INT,
-  billid INT,
+  messageid VARCHAR(36) PRIMARY KEY,
+  requestid VARCHAR(36),
+  orderid VARCHAR(36),
+  billid VARCHAR(36),
   messagebody VARCHAR(500),
   messagedate DATETIME,
   FOREIGN KEY (requestid) REFERENCES servicereq(requestid),
