@@ -12,7 +12,7 @@ const dbService = require('./dbService');
 
 
 app.use(cors());
-app.use(express.json())
+app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 // create
@@ -49,156 +49,6 @@ app.get('/getAll', (request, response) => {
 });
 
 
-app.get('/search/:name', (request, response) => { // we can debug by URL
-    
-    const {name} = request.params;
-    
-    console.log(name);
-
-    const db = dbService.getDbServiceInstance();
-
-    let result;
-    if(name === "all") // in case we want to search all
-       result = db.getAllData()
-    else 
-       result =  db.searchByName(name); // call a DB function
-
-    result
-    .then(data => response.json({data: data}))
-    .catch(err => console.log(err));
-});
-
-// Search by First Name
-app.get('/searchf/:firstname', (request, response) => { // we can debug by URL
-    
-    const {firstname} = request.params;
-    
-    console.log(firstname);
-
-    const db = dbService.getDbServiceInstance();
-
-    let result;
-    if(firstname === "all") // in case we want to search all
-       result = db.getAllData()
-    else 
-       result =  db.searchByFirstName(firstname); // call a DB function
-
-    result
-    .then(data => response.json({data: data}))
-    .catch(err => console.log(err));
-});
-
-// Search by userid
-app.get('/searchu/:userid', (request, response) => { // we can debug by URL
-    
-    const {userid} = request.params;
-    
-    console.log(userid);
-
-    const db = dbService.getDbServiceInstance();
-
-    let result;
-    if(userid === "all") // in case we want to search all
-       result = db.getAllData()
-    else 
-       result =  db.searchByUserId(userid); // call a DB function
-
-    result
-    .then(data => response.json({data: data}))
-    .catch(err => console.log(err));
-});
-
-  // Search by salary where salary is between x and y inclusively
-app.get('/searchs/:x/:y', (request, response) => { // we can debug by URL
-    
-    const {x, y} = request.params;
-    
-    console.log(x);
-    console.log(y);
-
-    const min = parseFloat(x);
-    const max = parseFloat(y);
-
-    const db = dbService.getDbServiceInstance();
-    result = db.searchSalaries(min, max); // call a DB function
-
-    result
-    .then(data => response.json({data: data}))
-    .catch(err => console.log(err));
-});
-
-  // Search by age where age is between x and y inclusively
-  app.get('/searcha/:x/:y', (request, response) => { // we can debug by URL
-    
-    const {x, y} = request.params;
-    
-    console.log(x);
-    console.log(y);
-
-    const min = parseInt(x);
-    const max = parseInt(y);
-
-    const db = dbService.getDbServiceInstance();
-    result = db.searchAges(min, max); // call a DB function
-
-    result
-    .then(data => response.json({data: data}))
-    .catch(err => console.log(err));
-});
-
-// made after specified user
-app.get('/searchAfterJohn/:username', async (req, res) => {
-
-    const { username } = req.params;
-    
-        
-        const db = dbService.getDbServiceInstance();
-
-        const johnResult = await db.getUserIdByUsername(username);
-        const johnId = johnResult[0].userid;
-        const result = await db.getUsersAfterId(johnId);
-
-        res.json({ data: result });
-    
-});
-
-app.get('/searchSameDay/:username', async (req, res) => {
-    const { username } = req.params;
-        const db = dbService.getDbServiceInstance();
-
-        const johnResult = await db.getJohnDate(username);
-        const johnDay = johnResult[0].registerday;
-        const result = await db.getSameDayUsers(johnDay);
-
-        res.json({ data: result });
-    
-});
-
-app.get('/searchNeverSignedIn', async (req, res) => {
-    try {
-        const db = dbService.getDbServiceInstance();
-        const result = await db.getUsersNeverSignedIn();
-        res.json({ data: result });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
-    }
-});
-
-// Search for users who registered today
-app.get('/searchRegisteredToday', async (req, res) => {
-    try {
-        const db = dbService.getDbServiceInstance();
-        const result = await db.getUsersRegisteredToday();
-        res.json({ data: result });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Database error" });
-    }
-});
-
-
-
 // update
 app.patch('/update', 
      (request, response) => {
@@ -215,22 +65,7 @@ app.patch('/update',
           .catch(err => console.log(err)); 
 
      }
-);
-
-// delete service
-app.delete('/delete/:userid', 
-     (request, response) => {     
-        const {userid} = request.params;
-        console.log("delete");
-        console.log(userid);
-        const db = dbService.getDbServiceInstance();
-
-        const result = db.deleteRowById(userid);
-
-        result.then(data => response.json({success: true}))
-        .catch(err => console.log(err));
-     }
-)   
+);   
 
 // debug function, will be deleted later
 app.post('/debug', (request, response) => {
@@ -259,31 +94,32 @@ app.get('/testdb', (request, response) => {
 
 // register
 app.post('/register', async (request, response) => {
-    const { username, password, firstname, lastname, age, salary } = request.body;
+    const { firstname, lastname, password, email, address, phonenum, creditcard, clientdate } = request.body;
 
-    if (!username || !password) {
-        return response.status(400).json({ error: "Username and password are required" });
+    if (!firstname || !password) {
+        return response.status(400).json({ error: "Firstname and password are required" });
     }
 
     console.log("Received registration:", request.body);
 
     try {
         const db = dbService.getDbServiceInstance();
-        const result = await db.registerUser(username, password, firstname, lastname, age, salary);
+        const clientid = crypto.randomUUID();
 
         // Fetch the newly registered user's data
-        const newUser = {
-            userid: result.insertId,
-            username,
+        const newClient = await db.registerClient(
+            clientid,
             firstname,
             lastname,
-            age,
-            salary,
-            registerday: new Date().toISOString(), // Current date
-            signintime: null // No sign-in yet
-        };
+            password,
+            email,
+            address,
+            phonenum,
+            creditcard,
+            clientdate
+        );
 
-        response.json({ success: true, user: newUser });
+        response.json({ success: true, client: newClient });
     } catch (err) {
         console.error(err);
         response.status(500).json({ error: "Database error" });
@@ -292,16 +128,16 @@ app.post('/register', async (request, response) => {
 
 //login
 app.post('/login', async(request, response) => {
-    const {username, password} = request.body;
+    const {email, password} = request.body;
 
     //validation
-    if(!username || !password) {
-        return response.status(400).json({error: "Username and password are required"});
+    if(!email || !password) {
+        return response.status(400).json({error: "Email and password are required"});
     }
 
     try {
         const db = dbService.getDbServiceInstance();
-        const result = await db.loginUser(username, password);
+        const result = await db.loginUser(email, password);
 
         if (result.success) {
             response.status(200).json(result); //success

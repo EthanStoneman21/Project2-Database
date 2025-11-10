@@ -70,19 +70,20 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(response => response.json())
 });
 
-   // Registration handler
+// Registration handler
 const regForm = document.getElementById('register-form');
 regForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  const username = document.getElementById('reg-username').value;
-  const password = document.getElementById('reg-password').value;
   const firstname = document.getElementById('reg-firstname').value;
   const lastname = document.getElementById('reg-lastname').value;
-  const age = document.getElementById('reg-age').value;
-  const salary = document.getElementById('reg-salary').value;
+  const password = document.getElementById('reg-password').value;
+  const email = document.getElementById('reg-email').value;
+  const address = document.getElementById('reg-address').value;
+  const phonenum = document.getElementById('reg-phonenum').value;
+  const creditcard = document.getElementById('reg-creditcard').value;
 
-  if (!username || !password) {
-    alert("Username and password are required");
+  if (!email || !password) {
+    alert("Email and password are required");
     return;
   }
 
@@ -92,7 +93,7 @@ regForm.addEventListener('submit', async (e) => {
     const response = await fetch("http://localhost:5050/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, firstname, lastname, age, salary })
+      body: JSON.stringify({ firstname, lastname, password, email, address, phonenum, creditcard })
     });
 
     const data = await response.json();
@@ -112,11 +113,11 @@ regForm.addEventListener('submit', async (e) => {
     const loginForm = document.getElementById('login-form');
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const username = document.getElementById('login-username').value;
+      const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
 
-      if (!username || !password) {
-        alert("Username and password are required");
+      if (!email || !password) {
+        alert("Email and password are required");
         return;
       }
 
@@ -124,7 +125,7 @@ regForm.addEventListener('submit', async (e) => {
         const response = await fetch("http://localhost:5050/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ email, password })
         });
 
         const data = await response.json();
