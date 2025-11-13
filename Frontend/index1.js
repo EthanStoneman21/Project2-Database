@@ -132,6 +132,12 @@ regForm.addEventListener('submit', async (e) => {
         console.log("Login response:", data);
 
         if (data.success === true || data.success === "true") {
+          if (email === "AnnaJohnson@gmail.com")
+          {
+            alert("Welcome Anna Johnson!");
+            window.location.assign("./anna_dash.html");
+            return;
+          }
           alert("Login successful!");
           window.location.assign("./names.html");
         } else {
