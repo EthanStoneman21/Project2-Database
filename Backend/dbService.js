@@ -251,6 +251,7 @@ class DbService{
  
      return {
        success: true,
+       clientid: client.clientid,
        message: "Login successful",
        user: {
          firstname: client.firstname,
@@ -268,6 +269,30 @@ class DbService{
      return { success: false, message: "An error occurred during login" };
    }
  }
+
+ async serviceRequest(requestid, clientid, reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate) {
+   try {
+     const result = await new Promise((resolve, reject) => {
+       const query = `
+         INSERT INTO servicereq (requestid, clientid, reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+       `;
+       connection.query(
+         query,
+         [requestid, clientid, reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate],
+         (err, result) => {
+           if (err) reject(err);
+           else resolve(result);
+         }
+       );
+     });
+ 
+     return result;
+   } catch (err) {
+     console.error("Request Error:", err);
+     throw err;
+   }
+ } 
 
 }
 module.exports = DbService;

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serivce Request</title>
+</head>
+<body>
+<main>
+  <h2>Service Request</h2>
+<form id="serviceRequest-form">
+  <label>Client Address:</label>
+  <input placeholder="Enter Address" type="text" id="SR-Address" name="address" required><br><br>
+
+  <label>Type of cleaning:</label>
+  <input type="text" id="SR-cleanType" name="cleanType" required><br><br>
+
+  <label>Number of rooms:</label>
+  <input placeholder="# of Rooms" type="text" id="SR-roomNum" name="roomNum" required><br><br>
+
+  <label>Preferred date/time:</label>
+  <input placeholder="Year-Month-Day" type="text" id="SR-date" name="date" required><br><br>
+
+  <label>Any special instructions:</label>
+  <input placeholder="Type Here" type="text" id="SR-info" name="SRinfo"><br><br>
+
+  <button type="submit">Submit</button>
+</form>
+
+</main>
+<script src="serviceRequest.js"></script>
+</body>
+</html>

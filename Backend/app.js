@@ -4,6 +4,8 @@
 const express = require('express')
 const cors = require ('cors')
 const dotenv = require('dotenv')
+const session = require('express-session');
+const crypto = require('crypto');
 dotenv.config()
 
 const app = express();
@@ -14,6 +16,19 @@ const dbService = require('./dbService');
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'supersecretkey',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false,
+        maxAge: 1000 * 60 * 60
+    }
+}));
+
+
 
 // create
 app.post('/insert', (request, response) => {
@@ -140,7 +155,8 @@ app.post('/login', async(request, response) => {
         const result = await db.loginUser(email, password);
 
         if (result.success) {
-            response.status(200).json(result); //success
+            request.session.clientid = result.clientid;
+            response.status(200).json({ success: true, clientid: result.clientid }); //success
         }
         else {
             response.status(401).json(result); //failure
@@ -151,6 +167,45 @@ app.post('/login', async(request, response) => {
         }
     }
 );
+
+// logout
+app.post('/logout', (request, response) => {
+    request.session.destroy(err => {
+        if (err) {
+            return response.status(500).json({ error: "Logout failed" });
+        }
+        response.json({ success: true });
+    });
+});
+
+app.post('/serviceRequest', async (req, res) => {
+  try {
+    const { reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate } = req.body;
+
+    const clientid = req.session.clientid;
+    const requestid = crypto.randomUUID();
+
+    const db = dbService.getDbServiceInstance();
+    const result = await db.serviceRequest(
+      requestid,
+      clientid,
+      reqaddress,
+      cleaningtype,
+      numofrooms,
+      budget,
+      servicenotes,
+      servicestatus,
+      servicedate
+    );
+
+    res.json({ success: true, id: result.insertId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
 
 // set up the web server listener
 // if we use .env to configure

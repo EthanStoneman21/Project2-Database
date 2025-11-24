@@ -133,7 +133,7 @@ regForm.addEventListener('submit', async (e) => {
 
         if (data.success === true || data.success === "true") {
           alert("Login successful!");
-          window.location.assign("./names.html");
+          window.location.assign("./clientPage.html");
         } else {
           alert("Login failed: " + (data.message || "Unknown error"));
         }
