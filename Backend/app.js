@@ -63,6 +63,19 @@ app.get('/getAll', (request, response) => {
     .catch(err => console.log(err));
 });
 
+// getAll servicereq
+app.get('/getAllservreq', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getAllDataservreq(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
 
 // update
 app.patch('/update', 
@@ -204,6 +217,41 @@ app.post('/serviceRequest', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+//servicereject
+app.post('/serviceReject', async (req, res) => {
+    try {
+      const { messageid, requestid, messagebody, messagedate } = req.body;
+  
+      const db = dbService.getDbServiceInstance();
+      const result = await db.serviceReject(
+        messageid,
+        requestid,
+        messagebody,
+        messagedate
+      );
+  
+      res.json({ success: true, id: result.insertId });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  //servicereject
+app.post('/servicequote', async (req, res) => {
+    try {
+        const { requestid, adjustedPrice, timeWindow, note } = req.body;
+    
+        const db = dbService.getDbServiceInstance();
+        const result = await db.serviceResponse(requestid, adjustedPrice, timeWindow, note);
+    
+        res.json({ success: true, id: result.insertId });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
+      }
+    });
 
 
 

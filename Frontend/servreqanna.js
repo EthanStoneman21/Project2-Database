@@ -1,7 +1,7 @@
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
     // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAll')     
+    fetch('http://localhost:5050/getAllservreq')     
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
 });
@@ -23,6 +23,14 @@ addBtn.onclick = function (){
     .then(data => insertRowIntoTable(data['data']));
 }*/
 
+/* when the respond button is clicked
+const respondBtn =  document.querySelector('#respond-btn');
+respondBtn.onclick = function (){
+    alert("Anna Johnson Service Requests Button Clicked");
+            window.location.assign("./servreqanna.html");
+            return;
+}
+*/
 
 let rowToDelete; 
 
@@ -42,63 +50,6 @@ document.querySelector('table tbody').addEventListener('click',
       }
 );
 
-// when the servreq button is clicked
-const servreqBtn =  document.querySelector('#servreq-btn');
-servreqBtn.onclick = function (){
-    alert("Anna Johnson Service Requests Button Clicked");
-            window.location.assign("./servreqanna.html");
-            return;
-}
-
-// when the quotes button is clicked
-const quotesBtn =  document.querySelector('#quotes-btn');
-quotesBtn.onclick = function (){
-    alert("Anna Johnson Quotes and Negotiations Page Button Clicked");
-            window.location.assign("./quotes.html");
-            return;
-}
-
-// when the orders button is clicked
-const ordersBtn =  document.querySelector('#orders-btn');
-ordersBtn.onclick = function (){
-    alert("Anna Johnson Orders Page Button Clicked");
-            window.location.assign("./orders.html");
-            return;
-}
-
-// when the bills button is clicked
-const billsBtn =  document.querySelector('#bills-btn');
-billsBtn.onclick = function (){
-    alert("Anna Johnson Orders Bills Button Clicked");
-            window.location.assign("./bills.html");
-            return;
-}
-
-// when the payments button is clicked
-const paymentsBtn =  document.querySelector('#payments-btn');
-paymentsBtn.onclick = function (){
-    alert("Anna Johnson Orders Payments Button Clicked");
-            window.location.assign("./payments.html");
-            return;
-}
-
-function deleteRowById(id){
-    // debug(id);
-    fetch('http://localhost:5050/delete/' + id,
-       { 
-        method: 'DELETE'
-       }
-    )
-    .then(response => response.json())
-    .then(
-         data => {
-             if(data.success){
-                document.getElementById("table").deleteRow(rowToDelete);
-                // location.reload();
-             }
-         }
-    );
-}
 
 let idToUpdate = 0;
 
@@ -112,41 +63,6 @@ function showEditRowInterface(id){
     idToUpdate = id;
     debug("id set!");
     debug(idToUpdate+"");
-}
-
-
-// when the update button on the update interface is clicked
-const updateBtn = document.querySelector('#update-row-btn');
-
-updateBtn.onclick = function(){
-    debug("update clicked");
-    debug("got the id: ");
-    debug(updateBtn.value);
-    
-    const updatedNameInput = document.querySelector('#update-name-input');
-
-    fetch('http://localhost:5050/update',
-          {
-            headers: {
-                'Content-type': 'application/json'
-            },
-            method: 'PATCH',
-            body: JSON.stringify(
-                  {
-                    id: idToUpdate,
-                    name: updatedNameInput.value
-                  }
-            )
-          }
-    ) 
-    .then(response => response.json())
-    .then(data => {
-        if(data.success){
-            location.reload();
-        }
-        else 
-           debug("no update occurs");
-    })
 }
 
 
@@ -241,21 +157,92 @@ function loadHTMLTable(data){
     */
 
     let tableHtml = "";
-    data.forEach(function ({clientid, firstname, lastname, password, email, address, phonenum, creditcard, clientdate}) {
+    data.filter(item => item.servicestatus === 0).forEach(function ({requestid, clientname, reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate}) {
         tableHtml += "<tr>";
-        tableHtml += `<td>${clientid}</td>`;
-        tableHtml += `<td>${firstname}</td>`;
-        tableHtml += `<td>${lastname}</td>`;
-        tableHtml += `<td>${password}</td>`;
-        tableHtml += `<td>${email}</td>`;
-        tableHtml += `<td>${address}</td>`;
-        tableHtml += `<td>${phonenum}</td>`;
-        tableHtml += `<td>${creditcard}</td>`;
-        tableHtml += `<td>${new Date(clientdate).toLocaleDateString()}</td>`;
-        tableHtml += `<td><button class="delete-row-btn" data-userid="${clientid}">Delete</button></td>`;
-        tableHtml += `<td><button class="edit-row-btn" data-userid="${clientid}">Edit</button></td>`;
+        tableHtml += `<td>${requestid}</td>`;
+        tableHtml += `<td>${clientname}</td>`;
+        tableHtml += `<td>${reqaddress}</td>`;
+        tableHtml += `<td>${cleaningtype}</td>`;
+        tableHtml += `<td>${numofrooms}</td>`;
+        tableHtml += `<td>${budget}</td>`;
+        tableHtml += `<td>${servicenotes}</td>`;
+        tableHtml += `<td>${servicestatus}</td>`;
+        tableHtml += `<td>${new Date(servicedate).toLocaleDateString()}</td>`;
+        tableHtml += `<td><button class="reject-btn" data-requestid="${requestid}">Reject</button></td>`;
+        tableHtml += `<td><button class="quote-btn" data-requestid="${requestid}">Reject</button></td>`;
         tableHtml += "</tr>";
     });
 
     table.innerHTML = tableHtml;
+
+    // when the reject button is clicked
+  document.querySelectorAll('.reject-btn').forEach(btn => {
+    btn.addEventListener('click', async function () {
+        const requestid = this.dataset.requestid; //same requestid
+
+        const messagebody = prompt("Enter rejection note.");
+
+        const rejection = {
+            messageid: crypto.randomUUID(),
+            requestid: requestid,
+            messagebody: messagebody,
+            messagedate: new Date().toISOString()
+        };
+
+        try {
+            const response = await fetch('http://localhost:5050/serviceReject', {
+                method: 'POST',
+                headers: { 'Content-Type' : 'application/json'},
+                body: JSON.stringify(rejection)
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert(`Request ${requestid} rejected with note: ${messagebody}`);
+            } else {
+                alert(result.error);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Server error");
+        }
+    })
+});
+
+ // when the quote button is clicked
+ document.querySelectorAll('.quote-btn').forEach(btn => {
+    btn.addEventListener('click', async function () {
+        const requestid = this.dataset.requestid;
+    
+        const adjustedPrice = prompt("Enter proposed price:");
+        const timeWindow = prompt("Enter proposed time window:");
+        const note = prompt("Enter optional note:");
+    
+        const quote = {
+            requestid,
+            adjustedPrice,
+            timeWindow,
+            note
+        };
+    
+        try {
+            const response = await fetch('http://localhost:5050/servicequote', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(quote)
+            });
+    
+            const result = await response.json();
+            if (result.success) {
+            alert(`Quote submitted for request ${requestid}`);
+            } else {
+            alert(result.error);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Server error");
+        }
+        });
+    });
+  
 }
