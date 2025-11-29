@@ -252,8 +252,6 @@ function loadHTMLTable(data){
         tableHtml += `<td>${phonenum}</td>`;
         tableHtml += `<td>${creditcard}</td>`;
         tableHtml += `<td>${new Date(clientdate).toLocaleDateString()}</td>`;
-        tableHtml += `<td><button class="delete-row-btn" data-userid="${clientid}">Delete</button></td>`;
-        tableHtml += `<td><button class="edit-row-btn" data-userid="${clientid}">Edit</button></td>`;
         tableHtml += "</tr>";
     });
 

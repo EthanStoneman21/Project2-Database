@@ -329,7 +329,7 @@ class DbService{
       `;
       const query2 = `
         INSERT INTO messages (messageid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, NOW());
+        VALUES (?, ?, ?, ?);
       `;
 
       //run both queries
@@ -359,11 +359,11 @@ async serviceResponse(requestid, adjustedPrice, timeWindow, note) {
     const result = await new Promise((resolve, reject) => {
       const query = `
         INSERT INTO messages (messageid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, NOW());
+        VALUES (?, ?, ?, ?);
       `;
 
       const messageid = crypto.randomUUID();
-      const messageBody = `Quote proposed → Price: $${adjustedPrice}, Time: ${timeWindow}, Note: ${note}`;
+      const messageBody = `Quote proposed = Price: $${adjustedPrice}, Time: ${timeWindow}, Note: ${note}`;
 
       connection.query(
         query,
