@@ -70,7 +70,7 @@ ordersBtn.onclick = function (){
 const billsBtn =  document.querySelector('#bills-btn');
 billsBtn.onclick = function (){
     alert("Anna Johnson Orders Bills Button Clicked");
-            window.location.assign("./bills.html");
+            window.location.assign("./annabills.html");
             return;
 }
 
