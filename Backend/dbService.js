@@ -382,5 +382,69 @@ async serviceResponse(requestid, adjustedPrice, timeWindow, note) {
   }
 }
 
+//client accepts work in progress
+async clientAccepts(messageid, requestid, messagebody, messagedate) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query1 = `
+        UPDATE servicereq
+        SET servicestatus = 1
+        WHERE requestid = ?;
+      `;
+      const query2 = `
+        INSERT INTO orders (messageid, requestid, messagebody, messagedate)
+        VALUES (?, ?, ?, ?);
+      `;
+
+      //run both queries
+      connection.query(query1, [requestid], (err) => {
+        if (err) reject(err);
+
+      connection.query(
+        query2,
+        [messageid, requestid, messagebody, messagedate],
+        (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+      });
+    });
+  });
+
+    return result;
+  } catch (err) {
+    console.error("Request Error:", err);
+    throw err;
+  }
+} 
+
+//client renegotiates work in progress
+async clientRenogotiate(requestid, note) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        INSERT INTO messages (messageid, requestid, messagebody, messagedate)
+        VALUES (?, ?, ?, ?);
+      `;
+
+      const messageid = crypto.randomUUID();
+      const messageBody = `Counter note ${note}`;
+
+      connection.query(
+        query,
+        [messageid, requestid, messageBody],
+        (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        }
+      );
+    });
+
+    return result;
+  } catch (err) {
+    console.error("Quote Error:", err);
+    throw err;
+  }
+}
+
 }
 module.exports = DbService;
