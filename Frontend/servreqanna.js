@@ -169,7 +169,7 @@ function loadHTMLTable(data){
         tableHtml += `<td>${servicestatus}</td>`;
         tableHtml += `<td>${new Date(servicedate).toLocaleDateString()}</td>`;
         tableHtml += `<td><button class="reject-btn" data-requestid="${requestid}">Reject</button></td>`;
-        tableHtml += `<td><button class="quote-btn" data-requestid="${requestid}">Reject</button></td>`;
+        tableHtml += `<td><button class="quote-btn" data-requestid="${requestid}">Quote</button></td>`;
         tableHtml += "</tr>";
     });
 
@@ -184,8 +184,8 @@ function loadHTMLTable(data){
 
         const rejection = {
             messageid: crypto.randomUUID(),
-            requestid: requestid,
-            messagebody: messagebody,
+            requestid,
+            messagebody,
             messagedate: new Date().toISOString()
         };
 

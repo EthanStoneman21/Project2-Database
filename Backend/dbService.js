@@ -137,100 +137,51 @@ class DbService{
         }
    }
 
-   async insertNewName(name){
-         try{
-            const dateAdded = new Date();
-            // use await to call an asynchronous function
-            const insertId = await new Promise((resolve, reject) => 
-            {
-               const query = "INSERT INTO users (name, date_added) VALUES (?, ?);";
-               connection.query(query, [name, dateAdded], (err, result) => {
-                   if(err) reject(new Error(err.message));
-                   else resolve(result.insertId);
-               });
-            });
-            console.log(insertId);  // for debugging to see the result of select
-            return{
-                 id: insertId,
-                 name: name,
-                 dateAdded: dateAdded
-            }
-         } catch(error){
-               console.log(error);
-         }
-   }
-
-
-
-
-   async searchByName(name){
-        try{
-             const dateAdded = new Date();
-             // use await to call an asynchronous function
-             const response = await new Promise((resolve, reject) => 
-                  {
-                     const query = "SELECT * FROM users where username = ?;";
-                     connection.query(query, [name], (err, results) => {
+   async getAllClientDataservreq(){
+    try{
+       // use await to call an asynchronous function
+       const response = await new Promise((resolve, reject) => 
+          {
+              const query = "SELECT * FROM servicereq;";
+              connection.query(query, 
+                   (err, results) => {
                          if(err) reject(new Error(err.message));
                          else resolve(results);
-                     });
-                  }
-             );
+                   }
+              );
+           }
+        );
+    
+        // console.log("dbServices.js: search result:");
+        // console.log(response);  // for debugging to see the result of select
+        return response;
 
-             // console.log(response);  // for debugging to see the result of select
-             return response;
+    }  catch(error){
+       console.log(error);
+    }
+}
 
-         }  catch(error){
-            console.log(error);
-         }
-   }
+async getServiceRequestById(requestid) {
+  try {
+      const result = await new Promise((resolve, reject) => {
+          const query = `
+              SELECT *
+              FROM servicereq
+              WHERE requestid = ?;
+          `;
+          connection.query(query, [requestid], (err, results) => {
+              if (err) reject(err);
+              else resolve(results[0]); // Ensure we return the first result
+          });
+      });
 
-   async deleteRowById(id){
-         try{
-              id = parseInt(id, 10);
-              // use await to call an asynchronous function
-              const response = await new Promise((resolve, reject) => 
-                  {
-                     const query = "DELETE FROM users WHERE userid = ?;";
-                     connection.query(query, [id], (err, result) => {
-                          if(err) reject(new Error(err.message));
-                          else resolve(result.affectedRows);
-                     });
-                  }
-               );
-
-               console.log(response);  // for debugging to see the result of select
-               return response === 1? true: false;
-
-         }  catch(error){
-              console.log(error);
-         }
-   }
-
-  
-  async updateNameById(id, newName){
-      try{
-           console.log("dbService: ");
-           console.log(id);
-           console.log(newName);
-           id = parseInt(id, 10);
-           // use await to call an asynchronous function
-           const response = await new Promise((resolve, reject) => 
-               {
-                  const query = "UPDATE client SET firstname = ? WHERE userid = ?;";
-                  connection.query(query, [newName, id], (err, result) => {
-                       if(err) reject(new Error(err.message));
-                       else resolve(result.affectedRows);
-                  });
-               }
-            );
-
-            // console.log(response);  // for debugging to see the result of select
-            return response === 1? true: false;
-      }  catch(error){
-         console.log(error);
-      }
+      console.log("getServiceRequestById result:", result); // Debugging log
+      return result;
+  } catch (err) {
+      console.error("getServiceRequestById Error:", err);
+      throw err;
   }
+}
 
   async registerClient(clientid, firstname, lastname, password, email, address, phonenum, creditcard, clientdate) {
    try {
@@ -293,6 +244,7 @@ class DbService{
      return { success: false, message: "An error occurred during login" };
    }
  }
+ 
 
  async serviceRequest(requestid, clientid, reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate) {
    try {
@@ -319,7 +271,7 @@ class DbService{
  } 
 
  //reject method
- async serviceReject(messageid, requestid, messagebody, messagedate) {
+ async serviceReject(messageid, clientid, recipientid, requestid, messagebody) {
   try {
     const result = await new Promise((resolve, reject) => {
       const query1 = `
@@ -328,8 +280,8 @@ class DbService{
         WHERE requestid = ?;
       `;
       const query2 = `
-        INSERT INTO messages (messageid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?);
+        INSERT INTO messages (messageid, clientid, recipientid, requestid, messagebody, messagedate)
+        VALUES (?, ?, ?, ?, ?, NOW());
       `;
 
       //run both queries
@@ -338,7 +290,7 @@ class DbService{
 
       connection.query(
         query2,
-        [messageid, requestid, messagebody, messagedate],
+        [messageid, clientid, recipientid, requestid, messagebody],
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
@@ -354,12 +306,12 @@ class DbService{
 } 
 
 //response method
-async serviceResponse(requestid, adjustedPrice, timeWindow, note) {
+async serviceResponse(requestid, clientid, recipientid, adjustedPrice, timeWindow, note) {
   try {
     const result = await new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO messages (messageid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?);
+        INSERT INTO messages (messageid, clientid, recipientid, requestid, messagebody, messagedate)
+        VALUES (?, ?, ?, ?, ?, NOW());
       `;
 
       const messageid = crypto.randomUUID();
@@ -367,7 +319,7 @@ async serviceResponse(requestid, adjustedPrice, timeWindow, note) {
 
       connection.query(
         query,
-        [messageid, requestid, messageBody],
+        [messageid, clientid, recipientid, requestid, messageBody],
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
@@ -382,56 +334,55 @@ async serviceResponse(requestid, adjustedPrice, timeWindow, note) {
   }
 }
 
-//client accepts work in progress
-async clientAccepts(messageid, requestid, messagebody, messagedate) {
+async createServiceOrder(orderid, requestid, finalprice, ordernotes) {
   try {
+    const servicereq = await this.getServiceRequestById(requestid);
+    const typeoforder = servicereq.cleaningtype;
+
     const result = await new Promise((resolve, reject) => {
-      const query1 = `
+      const insertQuery = `
+        INSERT INTO orders (orderid, requestid, typeoforder, finalprice, ordernotes, orderstatus, orderdate)
+        VALUES (?, ?, ?, ?, ?, ?, NOW());
+      `;
+      const updateQuery = `
         UPDATE servicereq
         SET servicestatus = 1
         WHERE requestid = ?;
       `;
-      const query2 = `
-        INSERT INTO orders (messageid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?);
-      `;
 
-      //run both queries
-      connection.query(query1, [requestid], (err) => {
-        if (err) reject(err);
+      // run both queries in sequence
+      connection.query(insertQuery,
+        [orderid, requestid, typeoforder, finalprice, ordernotes, true],
+        (err, insertResult) => {
+          if (err) return reject(err);
 
-      connection.query(
-        query2,
-        [messageid, requestid, messagebody, messagedate],
-        (err, result) => {
-          if (err) reject(err);
-          else resolve(result);
-      });
+          connection.query(updateQuery, [requestid], (err) => {
+            if (err) return reject(err);
+            resolve(insertResult);
+          });
+        }
+      );
     });
-  });
 
     return result;
   } catch (err) {
-    console.error("Request Error:", err);
+    console.error("Order Error:", err);
     throw err;
   }
-} 
+}
 
-//client renegotiates work in progress
-async clientRenogotiate(requestid, note) {
+
+async serviceCounter(messageid, clientid, recipientid, requestid, messagebody, messagedate) {
   try {
     const result = await new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO messages (messageid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?);
+        INSERT INTO messages (messageid, clientid, recipientid, requestid, messagebody, messagedate)
+        VALUES (?, ?, ?, ?, ?, ?);
       `;
-
-      const messageid = crypto.randomUUID();
-      const messageBody = `Counter note ${note}`;
 
       connection.query(
         query,
-        [messageid, requestid, messageBody],
+        [messageid, clientid, recipientid, requestid, messagebody, messagedate],
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
@@ -441,10 +392,31 @@ async clientRenogotiate(requestid, note) {
 
     return result;
   } catch (err) {
-    console.error("Quote Error:", err);
+    console.error("Counter Error:", err);
     throw err;
   }
 }
+
+async getMessagesBySender(clientid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT messageid, requestid, messagebody, messagedate, recipientid
+        FROM messages
+        WHERE clientid = ?;
+      `;
+      connection.query(query, [clientid], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getMessagesBySender Error:", err);
+    throw err;
+  }
+}
+
 
 }
 module.exports = DbService;

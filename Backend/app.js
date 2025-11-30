@@ -12,7 +12,6 @@ const app = express();
 
 const dbService = require('./dbService');
 
-
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
@@ -169,7 +168,8 @@ app.post('/login', async(request, response) => {
 
         if (result.success) {
             request.session.clientid = result.clientid;
-            response.status(200).json({ success: true, clientid: result.clientid }); //success
+            console.log("Session clientid set:", request.session.clientid); // Debug log
+            response.status(200).json({ success: true, clientid: result.clientid });
         }
         else {
             response.status(401).json(result); //failure
@@ -191,12 +191,15 @@ app.post('/logout', (request, response) => {
     });
 });
 
+
 app.post('/serviceRequest', async (req, res) => {
   try {
     const { reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate } = req.body;
 
     const clientid = req.session.clientid;
+    console.log("Session clientid:", req.session.clientid);
     const requestid = crypto.randomUUID();
+
 
     const db = dbService.getDbServiceInstance();
     const result = await db.serviceRequest(
@@ -221,30 +224,86 @@ app.post('/serviceRequest', async (req, res) => {
 //servicereject
 app.post('/serviceReject', async (req, res) => {
     try {
-      const { messageid, requestid, messagebody, messagedate } = req.body;
-  
-      const db = dbService.getDbServiceInstance();
-      const result = await db.serviceReject(
-        messageid,
-        requestid,
-        messagebody,
-        messagedate
-      );
-  
-      res.json({ success: true, id: result.insertId });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, error: err.message });
-    }
-  });
+        console.log("Session data:", req.session); // Log session data
 
-  //servicereject
-app.post('/servicequote', async (req, res) => {
-    try {
-        const { requestid, adjustedPrice, timeWindow, note } = req.body;
+        const { messageid, requestid, messagebody } = req.body;
+        const clientid = req.session.clientid;
     
         const db = dbService.getDbServiceInstance();
-        const result = await db.serviceResponse(requestid, adjustedPrice, timeWindow, note);
+        const servicereq = await db.getServiceRequestById(requestid);
+        console.log("Service request data:", servicereq); // Log database query result
+    
+        const recipientid = servicereq.client;
+    
+        const result = await db.serviceReject(
+          messageid,
+          clientid,
+          recipientid,
+          requestid,
+          messagebody
+        );
+    
+        res.json({ success: true, id: result.insertId });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
+      }
+  });
+
+  //service quote
+app.post('/servicequote', async (req, res) => {
+    try {
+        console.log("Session data:", req.session); // Log session data
+
+        const { requestid, adjustedPrice, timeWindow, note } = req.body;
+        const clientid = req.session.clientid;
+
+        if (!clientid) {
+            return res.status(400).json({ success: false, error: "Client ID is missing in session" });
+        }
+
+        const db = dbService.getDbServiceInstance();
+        const servicereq = await db.getServiceRequestById(requestid);
+        console.log("Service request data:", servicereq); // Log database query result
+
+        if (!servicereq || !servicereq.clientid) {
+            return res.status(400).json({ success: false, error: "Invalid request ID or missing client ID in service request" });
+        }
+
+        const recipientid = servicereq.clientid;
+
+        const result = await db.serviceResponse(
+            requestid,
+            clientid,
+            recipientid,
+            adjustedPrice,
+            timeWindow,
+            note
+        );
+
+        res.json({ success: true, id: result.insertId });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+
+  //serviceaccept
+  app.post('/serviceaccept', async (req, res) => {
+    try {
+        const { requestid, finalprice, ordernotes } = req.body;
+        const orderid = crypto.randomUUID();
+    
+        const db = dbService.getDbServiceInstance();
+
+        const result = await db.serviceServiceOrder(
+            orderid,
+            requestid,
+            typeoforder,
+            finalprice,
+            ordernotes
+        );
     
         res.json({ success: true, id: result.insertId });
       } catch (err) {
@@ -253,7 +312,45 @@ app.post('/servicequote', async (req, res) => {
       }
     });
 
+//serviceservicecounter
+  app.post('/servicecounter', async (req, res) => {
+    try {
+        const { requestid, note } = req.body;
+        const clientid = req.session.clientid;
+        const messageid = crypto.randomUUID();
+    
+        const db = dbService.getDbServiceInstance();
+        const servicereq = await db.getServiceRequestById(requestid);
+        const recipientid = servicereq.providerid;
 
+        const result = await db.serviceCounter(
+            messageid,
+            clientid,
+            recipientid,
+            requestid,
+            note,
+            new Date().toISOString()
+        );
+    
+        res.json({ success: true, id: result.insertId });
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
+      }
+    });
+
+    //
+    app.get('/getAnnaMessages', async (req, res) => {
+        try {
+        const db = dbService.getDbServiceInstance();
+        const result = await db.getMessagesBySender('b4d030bd-5550-45e4-bebb-d1a009734dff');
+        res.json({ success: true, data: result });
+        } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
+        }
+    });
+  
 
 // set up the web server listener
 // if we use .env to configure

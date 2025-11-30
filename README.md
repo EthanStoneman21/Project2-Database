@@ -66,11 +66,15 @@ CREATE TABLE bill (
 
 CREATE TABLE messages (
   messageid VARCHAR(36) PRIMARY KEY,
+  clientid VARCHAR(36),
+  recipientid VARCHAR(36),
   requestid VARCHAR(36),
   orderid VARCHAR(36),
   billid VARCHAR(36),
   messagebody VARCHAR(500),
   messagedate DATETIME,
+  FOREIGN KEY (clientid) REFERENCES client(clientid),
+  FOREIGN KEY (recipientid) REFERENCES client(clientid),
   FOREIGN KEY (requestid) REFERENCES servicereq(requestid),
   FOREIGN KEY (orderid) REFERENCES orders(orderid),
   FOREIGN KEY (billid) REFERENCES bill(billid)
