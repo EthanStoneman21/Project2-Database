@@ -193,7 +193,8 @@ function loadHTMLTable(data){
             const response = await fetch('http://localhost:5050/serviceReject', {
                 method: 'POST',
                 headers: { 'Content-Type' : 'application/json'},
-                body: JSON.stringify(rejection)
+                body: JSON.stringify(rejection),
+                credentials: 'include'
             });
 
             const result = await response.json();
@@ -229,7 +230,8 @@ function loadHTMLTable(data){
             const response = await fetch('http://localhost:5050/servicequote', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(quote)
+            body: JSON.stringify(quote),
+            credentials: 'include'
             });
     
             const result = await response.json();

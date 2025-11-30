@@ -29,7 +29,8 @@ console.log("Sending service request...");
     const response = await fetch("http://localhost:5050/serviceRequest", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate})
+      body: JSON.stringify({reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate}),
+      credentials: 'include'
     });
 
     const data = await response.json();

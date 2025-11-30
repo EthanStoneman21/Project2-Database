@@ -12,7 +12,10 @@ const app = express();
 
 const dbService = require('./dbService');
 
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost',
+    credentials: true
+  }));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
@@ -23,6 +26,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: false,
+        httpOnly: true,
         maxAge: 1000 * 60 * 60
     }
 }));
@@ -194,6 +198,8 @@ app.post('/logout', (request, response) => {
 
 app.post('/serviceRequest', async (req, res) => {
   try {
+
+    console.log("Session object:", req.session); // debug
     const { reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate } = req.body;
 
     const clientid = req.session.clientid;
@@ -214,7 +220,7 @@ app.post('/serviceRequest', async (req, res) => {
       servicedate
     );
 
-    res.json({ success: true, id: result.insertId });
+    res.json({ success: true, id: result.requestid });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: err.message });
@@ -281,7 +287,7 @@ app.post('/servicequote', async (req, res) => {
             note
         );
 
-        res.json({ success: true, id: result.insertId });
+        res.json({ success: true, id: result.insertId || requestid });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: err.message });
@@ -305,7 +311,7 @@ app.post('/servicequote', async (req, res) => {
             ordernotes
         );
     
-        res.json({ success: true, id: result.insertId });
+        res.json({ success: true, id: result.insertId || requestid});
       } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: err.message });
@@ -332,7 +338,7 @@ app.post('/servicequote', async (req, res) => {
             new Date().toISOString()
         );
     
-        res.json({ success: true, id: result.insertId });
+        res.json({ success: true, id: result.insertId || requestid});
       } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: err.message });
@@ -343,7 +349,7 @@ app.post('/servicequote', async (req, res) => {
     app.get('/getAnnaMessages', async (req, res) => {
         try {
         const db = dbService.getDbServiceInstance();
-        const result = await db.getMessagesBySender('b4d030bd-5550-45e4-bebb-d1a009734dff');
+        const result = await db.getMessagesBySender('c67ebd4f-5d8c-4790-88d6-db7430af4730');
         res.json({ success: true, data: result });
         } catch (err) {
         console.error(err);
