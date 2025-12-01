@@ -79,6 +79,32 @@ app.get('/getAllservreq', (request, response) => {
     .catch(err => console.log(err));
 });
 
+// getAll orders
+app.get('/getAllOrders', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getAllOrders(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
+// getAll orders
+app.get('/getAllCounterMessages', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getAllCounterMessages(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
 
 // update
 app.patch('/update', 
@@ -303,10 +329,9 @@ app.post('/servicequote', async (req, res) => {
     
         const db = dbService.getDbServiceInstance();
 
-        const result = await db.serviceServiceOrder(
+        const result = await db.createServiceOrder(
             orderid,
             requestid,
-            typeoforder,
             finalprice,
             ordernotes
         );
@@ -326,13 +351,10 @@ app.post('/servicequote', async (req, res) => {
         const messageid = crypto.randomUUID();
     
         const db = dbService.getDbServiceInstance();
-        const servicereq = await db.getServiceRequestById(requestid);
-        const recipientid = servicereq.providerid;
 
         const result = await db.serviceCounter(
             messageid,
             clientid,
-            recipientid,
             requestid,
             note,
             new Date().toISOString()
@@ -345,15 +367,16 @@ app.post('/servicequote', async (req, res) => {
       }
     });
 
-    //
+    //show annas messages
     app.get('/getAnnaMessages', async (req, res) => {
         try {
-        const db = dbService.getDbServiceInstance();
-        const result = await db.getMessagesBySender('c67ebd4f-5d8c-4790-88d6-db7430af4730');
-        res.json({ success: true, data: result });
-        } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false, error: err.message });
+            const clientid = req.session.clientid;
+            const db = dbService.getDbServiceInstance();
+            const result = await db.getMessagesBetween('c67ebd4f-5d8c-4790-88d6-db7430af4730', clientid);
+            res.json({ success: true, data: result });
+            } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, error: err.message });
         }
     });
   

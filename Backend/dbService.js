@@ -161,6 +161,56 @@ class DbService{
     }
 }
 
+async getAllOrders(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = "SELECT * FROM orders;";
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
+async getAllCounterMessages(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT * 
+                           FROM messages
+                           WHERE counternote IS NOT NULL;`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
 async getServiceRequestById(requestid) {
   try {
       const result = await new Promise((resolve, reject) => {
@@ -310,16 +360,16 @@ async serviceResponse(requestid, clientid, recipientid, adjustedPrice, timeWindo
   try {
     const result = await new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO messages (messageid, clientid, recipientid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?, ?, NOW());
+        INSERT INTO messages (messageid, clientid, recipientid, requestid, adjustedPrice, messagebody, messagedate)
+        VALUES (?, ?, ?, ?, ?, ?, NOW());
       `;
 
       const messageid = crypto.randomUUID();
-      const messageBody = `Quote proposed = Price: $${adjustedPrice}, Time: ${timeWindow}, Note: ${note}`;
+      const messageBody = `Quote proposed = Time: ${timeWindow}, Note: ${note}`;
 
       connection.query(
         query,
-        [messageid, clientid, recipientid, requestid, messageBody],
+        [messageid, clientid, recipientid, requestid, adjustedPrice, messageBody],
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
@@ -338,6 +388,8 @@ async createServiceOrder(orderid, requestid, finalprice, ordernotes) {
   try {
     const servicereq = await this.getServiceRequestById(requestid);
     const typeoforder = servicereq.cleaningtype;
+    console.log("servicereq:", servicereq);
+
 
     const result = await new Promise((resolve, reject) => {
       const insertQuery = `
@@ -352,7 +404,7 @@ async createServiceOrder(orderid, requestid, finalprice, ordernotes) {
 
       // run both queries in sequence
       connection.query(insertQuery,
-        [orderid, requestid, typeoforder, finalprice, ordernotes, true],
+        [orderid, requestid, typeoforder, finalprice, ordernotes, false],
         (err, insertResult) => {
           if (err) return reject(err);
 
@@ -372,17 +424,17 @@ async createServiceOrder(orderid, requestid, finalprice, ordernotes) {
 }
 
 
-async serviceCounter(messageid, clientid, recipientid, requestid, messagebody, messagedate) {
+async serviceCounter(messageid, clientid, requestid, counternote, messagedate) {
   try {
     const result = await new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO messages (messageid, clientid, recipientid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?, ?, ?);
+        INSERT INTO messages (messageid, clientid,requestid, counternote, messagedate)
+        VALUES (?, ?, ?, ?, ?);
       `;
 
       connection.query(
         query,
-        [messageid, clientid, recipientid, requestid, messagebody, messagedate],
+        [messageid, clientid, requestid, counternote, messagedate],
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
@@ -406,6 +458,26 @@ async getMessagesBySender(clientid) {
         WHERE clientid = ?;
       `;
       connection.query(query, [clientid], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getMessagesBySender Error:", err);
+    throw err;
+  }
+}
+
+async getMessagesBetween(senderid, recipientid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT messageid, requestid, adjustedPrice, messagebody, messagedate
+        FROM messages
+        WHERE clientid = ? AND recipientid = ?;
+      `;
+      connection.query(query, [senderid, recipientid], (err, results) => {
         if (err) reject(err);
         else resolve(results);
       });
