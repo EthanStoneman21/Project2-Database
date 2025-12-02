@@ -13,7 +13,7 @@ const app = express();
 const dbService = require('./dbService');
 
 app.use(cors({
-    origin: 'http://localhost',
+    origin: ["http://localhost", "http://127.0.0.1:5500"],
     credentials: true
   }));
 app.use(express.json());
@@ -379,6 +379,26 @@ app.post('/servicequote', async (req, res) => {
             res.status(500).json({ success: false, error: err.message });
         }
     });
+
+    //complete order
+    app.post('/completeOrder', async (req, res) => {
+        try {
+            const { orderid, typeoforder, finalprice, billnotes } = req.body;
+
+        if (!orderid || !finalprice) {
+            return res.status(400).json({ success: false, error: "Order ID and final price are required" });
+        }
+
+        const db = dbService.getDbServiceInstance();
+        const result = await db.completeOrder(orderid, typeoforder, finalprice, billnotes);
+
+        res.json({ success: true, id: result.insertId || orderid });
+            } catch (err) {
+            console.error("Complete Order Error:", err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
   
 
 // set up the web server listener

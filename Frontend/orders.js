@@ -166,8 +166,46 @@ function loadHTMLTable(data){
         tableHtml += `<td>${ordernotes}</td>`;
         tableHtml += `<td>${new Date(orderdate).toLocaleDateString()}</td>`;
         tableHtml += "</tr>";
+        tableHtml += `<td><button class="completeOrder-btn" data-orderid="${orderid}" data-typeoforder="${typeoforder}" data-finalprice="${finalprice}">Complete</button></td>`;
+        tableHtml += "</tr>";
     });
 
     table.innerHTML = tableHtml;
+
+    document.querySelectorAll('.completeOrder-btn').forEach(btn => {
+    btn.addEventListener('click', async function () {
+    const orderid = this.dataset.orderid;
+    const typeoforder = this.dataset.typeoforder;
+    const finalprice = this.dataset.finalprice;
+    const note = prompt("Enter any notes:");
+
+    const completeOrder = {
+      orderid,
+      typeoforder,
+      finalprice,
+      billnotes: note
+    };
+
+    try {
+      const response = await fetch('http://localhost:5050/completeOrder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(completeOrder),
+        credentials: 'include'
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        alert(`Order Complete! Bill created.`);
+      } else {
+        alert(result.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
+  });
+});
+
 
 }

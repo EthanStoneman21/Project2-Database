@@ -465,6 +465,33 @@ async getMessagesBetween(senderid, recipientid) {
   }
 }
 
+async completeOrder(orderid, typeoforder, finalprice, billnotes) {
+  try {
+    const billid = crypto.randomUUID();
+
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        INSERT INTO bill (billid, orderid, typeoforder, finalprice, billnotes)
+        VALUES (?, ?, ?, ?, ?);
+      `;
+      connection.query(
+        query,
+        [billid, orderid, typeoforder, finalprice, billnotes],
+        (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        }
+      );
+    });
+
+    return result;
+  } catch (err) {
+    console.error("Complete Order Error:", err);
+    throw err;
+  }
+}
+
+
 
 }
 module.exports = DbService;
