@@ -157,7 +157,7 @@ function loadHTMLTable(data){
     */
 
     let tableHtml = "";
-    data.forEach(function ({orderid, requestid, typeoforder, finalprice, ordernotes, orderdate}) {
+    data.filter(item => item.orderstatus === 0).forEach(function ({orderid, requestid, typeoforder, finalprice, ordernotes, orderdate}) {
         tableHtml += "<tr>";
         tableHtml += `<td>${orderid}</td>`;
         tableHtml += `<td>${requestid}</td>`;

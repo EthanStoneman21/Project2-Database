@@ -105,6 +105,18 @@ app.get('/getAllCounterMessages', (request, response) => {
     .catch(err => console.log(err));
 });
 
+// getAll orders
+app.get('/getFrequentClients', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getFrequentClients(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
 
 // update
 app.patch('/update', 

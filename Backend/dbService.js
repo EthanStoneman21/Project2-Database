@@ -187,6 +187,36 @@ async getAllCounterMessages(){
   }
 }
 
+async getFrequentClients(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT firstname, lastname
+                            FROM client
+                            WHERE clientid IN (
+                                SELECT clientid
+                                FROM MostOrders
+                                WHERE NUM = (SELECT MAX(NUM) FROM MostOrders)
+                            );`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
 async getServiceRequestById(requestid) {
   try {
       const result = await new Promise((resolve, reject) => {
@@ -470,18 +500,35 @@ async completeOrder(orderid, typeoforder, finalprice, billnotes) {
     const billid = crypto.randomUUID();
 
     const result = await new Promise((resolve, reject) => {
+      //create bill
       const query = `
-        INSERT INTO bill (billid, orderid, typeoforder, finalprice, billnotes)
-        VALUES (?, ?, ?, ?, ?);
+        INSERT INTO bill (billid, orderid, typeoforder, finalprice, billnotes, billdate)
+        VALUES (?, ?, ?, ?, ?, NOW());
       `;
+
+      //update order status
+      const query2 = `
+        UPDATE orders
+        SET orderstatus = 1
+        WHERE orderid = ?;
+      `;
+
       connection.query(
         query,
         [billid, orderid, typeoforder, finalprice, billnotes],
+        (err, insertresult) => {
+          if (err) reject(err);
+
+      connection.query(
+        query2,
+        [orderid],
         (err, result) => {
           if (err) reject(err);
-          else resolve(result);
+          else resolve({insertresult, result});
         }
       );
+    }
+  );
     });
 
     return result;

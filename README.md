@@ -60,6 +60,7 @@ CREATE TABLE bill (
   explanations VARCHAR(500),
   disputes VARCHAR(500),
   ispaid BOOL,
+  billdate DATETIME,
   paydate DATETIME,
   FOREIGN KEY (orderid) REFERENCES orders(orderid)
 );

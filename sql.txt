@@ -92,3 +92,13 @@ WHERE clientid IN (
     FROM MostOrders
     WHERE NUM = (SELECT MAX(NUM) FROM MostOrders)
 );
+
+SELECT c.firstname, c.lastname, COUNT(s.requestid) AS total_requests
+FROM client c, servicereq s
+WHERE c.clientid = s.clientid
+  AND s.requestid NOT IN (
+    SELECT requestid 
+    FROM orders
+    WHERE orderstatus = 1)
+GROUP BY c.firstname, c.lastname
+HAVING COUNT(s.requestid) >= 3;

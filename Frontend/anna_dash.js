@@ -1,7 +1,7 @@
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
     // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAll')     
+    fetch('http://localhost:5050/getFrequentClients')     
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
 });
@@ -262,17 +262,10 @@ function loadHTMLTable(data){
     */
 
     let tableHtml = "";
-    data.forEach(function ({clientid, firstname, lastname, password, email, address, phonenum, creditcard, clientdate}) {
+    data.forEach(function ({firstname, lastname}) {
         tableHtml += "<tr>";
-        tableHtml += `<td>${clientid}</td>`;
         tableHtml += `<td>${firstname}</td>`;
         tableHtml += `<td>${lastname}</td>`;
-        tableHtml += `<td>${password}</td>`;
-        tableHtml += `<td>${email}</td>`;
-        tableHtml += `<td>${address}</td>`;
-        tableHtml += `<td>${phonenum}</td>`;
-        tableHtml += `<td>${creditcard}</td>`;
-        tableHtml += `<td>${new Date(clientdate).toLocaleDateString()}</td>`;
         tableHtml += "</tr>";
     });
 
