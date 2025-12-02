@@ -137,30 +137,6 @@ class DbService{
         }
    }
 
-   async getAllClientDataservreq(){
-    try{
-       // use await to call an asynchronous function
-       const response = await new Promise((resolve, reject) => 
-          {
-              const query = "SELECT * FROM servicereq;";
-              connection.query(query, 
-                   (err, results) => {
-                         if(err) reject(new Error(err.message));
-                         else resolve(results);
-                   }
-              );
-           }
-        );
-    
-        // console.log("dbServices.js: search result:");
-        // console.log(response);  // for debugging to see the result of select
-        return response;
-
-    }  catch(error){
-       console.log(error);
-    }
-}
-
 async getAllOrders(){
   try{
      // use await to call an asynchronous function

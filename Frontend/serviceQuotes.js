@@ -1,7 +1,10 @@
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
     // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAnnaMessages')     
+    fetch('http://localhost:5050/getAnnaMessages', {
+        method: "GET",
+        credentials: "include"
+    })     
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
 });
@@ -157,16 +160,85 @@ function loadHTMLTable(data){
     */
 
     let tableHtml = "";
-    data.forEach(function ({messageid, requestid, messagebody, messagedate, firstname, lastname}) {
+    data.forEach(function ({messageid, requestid, adjustedPrice, messagebody, messagedate}) {
         tableHtml += "<tr>";
         tableHtml += `<td>${messageid}</td>`;
         tableHtml += `<td>${requestid}</td>`;
-        tableHtml += `<td>${firstname} ${lastname}</td>`;
+        tableHtml += `<td>$${adjustedPrice}</td>`;
         tableHtml += `<td>${messagebody}</td>`;
         tableHtml += `<td>${new Date(messagedate).toLocaleString()}</td>`;
+        tableHtml += `<td><button class="accept-btn" data-requestid="${requestid}" data-finalprice="${adjustedPrice}">Accept</button></td>`;
+        tableHtml += `<td><button class="counter-btn" data-requestid="${requestid}">Counter</button></td>`;
         tableHtml += "</tr>";
       });
 
     table.innerHTML = tableHtml;
+
+     // when the reject button is clicked
+  document.querySelectorAll('.counter-btn').forEach(btn => {
+    btn.addEventListener('click', async function () {
+        const requestid = this.dataset.requestid; //same requestid
+        const note = prompt("Enter any notes:");
+
+        const counter = {
+            requestid,
+            note
+        };
+
+        try {
+            const response = await fetch('http://localhost:5050/servicecounter', {
+                method: 'POST',
+                headers: { 'Content-Type' : 'application/json'},
+                body: JSON.stringify(counter),
+                credentials: 'include'
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert(`Countered!`);
+            } else {
+                alert(result.error);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Server error");
+        }
+    })
+});
+
+   // when the accept button is clicked
+   document.querySelectorAll('.accept-btn').forEach(btn => {
+    btn.addEventListener('click', async function () {
+        const requestid = this.dataset.requestid; //same requestid
+        const finalprice = this.dataset.finalprice; //same finalprice
+        const ordernote = prompt("Enter any notes:");
+
+        const accept = {
+            orderid: crypto.randomUUID(),
+            requestid,
+            finalprice,
+            ordernote
+        };
+
+        try {
+            const response = await fetch('http://localhost:5050/serviceaccept', {
+                method: 'POST',
+                headers: { 'Content-Type' : 'application/json'},
+                body: JSON.stringify(accept),
+                credentials: 'include'
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                alert(`Accepted!`);
+            } else {
+                alert(result.error);
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Server error");
+        }
+    })
+});
   
 }

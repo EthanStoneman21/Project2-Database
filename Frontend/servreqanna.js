@@ -1,7 +1,10 @@
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
     // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAllservreq')     
+    fetch('http://localhost:5050/getAllservreq', {
+        method: "GET",
+        credentials: "include"
+    })     
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
 });
@@ -157,10 +160,10 @@ function loadHTMLTable(data){
     */
 
     let tableHtml = "";
-    data.filter(item => item.servicestatus === 0).forEach(function ({requestid, clientname, reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate}) {
+    data.filter(item => item.servicestatus === 0).forEach(function ({requestid, clientid, reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate}) {
         tableHtml += "<tr>";
         tableHtml += `<td>${requestid}</td>`;
-        tableHtml += `<td>${clientname}</td>`;
+        tableHtml += `<td>${clientid}</td>`;
         tableHtml += `<td>${reqaddress}</td>`;
         tableHtml += `<td>${cleaningtype}</td>`;
         tableHtml += `<td>${numofrooms}</td>`;

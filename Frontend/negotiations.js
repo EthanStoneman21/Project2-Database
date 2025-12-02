@@ -1,7 +1,7 @@
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
     // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAll')     
+    fetch('http://localhost:5050/getAllCounterMessages')     
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
 });
@@ -23,6 +23,14 @@ addBtn.onclick = function (){
     .then(data => insertRowIntoTable(data['data']));
 }*/
 
+/* when the respond button is clicked
+const respondBtn =  document.querySelector('#respond-btn');
+respondBtn.onclick = function (){
+    alert("Anna Johnson Service Requests Button Clicked");
+            window.location.assign("./servreqanna.html");
+            return;
+}
+*/
 
 let rowToDelete; 
 
@@ -42,84 +50,6 @@ document.querySelector('table tbody').addEventListener('click',
       }
 );
 
-// when the servreq button is clicked
-const servreqBtn =  document.querySelector('#servreq-btn');
-servreqBtn.onclick = function (){
-    alert("Anna Johnson Service Requests Button Clicked");
-            window.location.assign("./servreqanna.html");
-            return;
-}
-
-// when the negotiations button is clicked
-const negotiationsBtn =  document.querySelector('#negotiations-btn');
-negotiationsBtn.onclick = function (){
-    alert("Anna Johnson Negotiations Page Button Clicked");
-            window.location.assign("./negotiations.html");
-            return;
-}
-
-// when the orders button is clicked
-const ordersBtn =  document.querySelector('#orders-btn');
-ordersBtn.onclick = function (){
-    alert("Anna Johnson Orders Page Button Clicked");
-            window.location.assign("./orders.html");
-            return;
-}
-
-// when the bills button is clicked
-const billsBtn =  document.querySelector('#bills-btn');
-billsBtn.onclick = function (){
-    alert("Anna Johnson Orders Bills Button Clicked");
-            window.location.assign("./annabills.html");
-            return;
-}
-
-// when the payments button is clicked
-const paymentsBtn =  document.querySelector('#payments-btn');
-paymentsBtn.onclick = function (){
-    alert("Anna Johnson Orders Payments Button Clicked");
-            window.location.assign("./payments.html");
-            return;
-}
-
-//logout button
-const logoutBtn = document.getElementById('logout-btn');
-logoutBtn.addEventListener('click', async () => {
-    try {
-        const response = await fetch('http://localhost:5050/logout', {
-            method: 'POST',
-            credentials: 'include'
-        });
-
-        const data = await response.json();
-        if (data.success) {
-            alert("Logged out successfully");
-            window.location.assign('./index.html');
-        } else {
-            alert("Logout failed");
-        }
-    } catch (err) {
-        console.error("Error logging out:", err);
-    }
-});
-
-function deleteRowById(id){
-    // debug(id);
-    fetch('http://localhost:5050/delete/' + id,
-       { 
-        method: 'DELETE'
-       }
-    )
-    .then(response => response.json())
-    .then(
-         data => {
-             if(data.success){
-                document.getElementById("table").deleteRow(rowToDelete);
-                // location.reload();
-             }
-         }
-    );
-}
 
 let idToUpdate = 0;
 
@@ -133,41 +63,6 @@ function showEditRowInterface(id){
     idToUpdate = id;
     debug("id set!");
     debug(idToUpdate+"");
-}
-
-
-// when the update button on the update interface is clicked
-const updateBtn = document.querySelector('#update-row-btn');
-
-updateBtn.onclick = function(){
-    debug("update clicked");
-    debug("got the id: ");
-    debug(updateBtn.value);
-    
-    const updatedNameInput = document.querySelector('#update-name-input');
-
-    fetch('http://localhost:5050/update',
-          {
-            headers: {
-                'Content-type': 'application/json'
-            },
-            method: 'PATCH',
-            body: JSON.stringify(
-                  {
-                    id: idToUpdate,
-                    name: updatedNameInput.value
-                  }
-            )
-          }
-    ) 
-    .then(response => response.json())
-    .then(data => {
-        if(data.success){
-            location.reload();
-        }
-        else 
-           debug("no update occurs");
-    })
 }
 
 
@@ -262,19 +157,16 @@ function loadHTMLTable(data){
     */
 
     let tableHtml = "";
-    data.forEach(function ({clientid, firstname, lastname, password, email, address, phonenum, creditcard, clientdate}) {
+    data.forEach(function ({messageid, clientid, requestid, counternote, messagedate}) {
         tableHtml += "<tr>";
+        tableHtml += `<td>${messageid}</td>`;
         tableHtml += `<td>${clientid}</td>`;
-        tableHtml += `<td>${firstname}</td>`;
-        tableHtml += `<td>${lastname}</td>`;
-        tableHtml += `<td>${password}</td>`;
-        tableHtml += `<td>${email}</td>`;
-        tableHtml += `<td>${address}</td>`;
-        tableHtml += `<td>${phonenum}</td>`;
-        tableHtml += `<td>${creditcard}</td>`;
-        tableHtml += `<td>${new Date(clientdate).toLocaleDateString()}</td>`;
+        tableHtml += `<td>${requestid}</td>`;
+        tableHtml += `<td>${counternote}</td>`;
+        tableHtml += `<td>${new Date(messagedate).toLocaleDateString()}</td>`;
         tableHtml += "</tr>";
     });
 
     table.innerHTML = tableHtml;
+
 }

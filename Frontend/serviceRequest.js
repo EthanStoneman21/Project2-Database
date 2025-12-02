@@ -2,7 +2,10 @@
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
     // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAll')     
+    fetch('http://localhost:5050/getAll', {
+      method: "GET",
+      credentials: "include"
+  })     
     .then(response => response.json())
 });
 
