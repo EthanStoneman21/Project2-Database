@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = 'serviceRequest.html';
   });
 
-  document.getElementById('serviceQuotes-btn').addEventListener('click', () => {
-    window.location.href = 'serviceQuotes.html';
+  document.getElementById('messages-btn').addEventListener('click', () => {
+    window.location.href = 'messages.html';
   });
 
   document.getElementById('bills-btn').addEventListener('click', () => {

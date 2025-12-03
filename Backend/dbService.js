@@ -217,6 +217,38 @@ async getFrequentClients(){
   }
 }
 
+async getUncommittedClients(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT c.firstname, c.lastname, COUNT(s.requestid) AS total_requests
+                            FROM client c, servicereq s
+                            WHERE c.clientid = s.clientid
+                              AND s.requestid NOT IN (
+                                SELECT requestid 
+                                FROM orders
+                                WHERE orderstatus = 1)
+                            GROUP BY c.firstname, c.lastname
+                            HAVING COUNT(s.requestid) >= 3;`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
 async getServiceRequestById(requestid) {
   try {
       const result = await new Promise((resolve, reject) => {
@@ -332,12 +364,12 @@ async getServiceRequestById(requestid) {
     const result = await new Promise((resolve, reject) => {
       const query1 = `
         UPDATE servicereq
-        SET servicestatus = 0
+        SET isRejected = 1
         WHERE requestid = ?;
       `;
       const query2 = `
-        INSERT INTO messages (messageid, clientid, recipientid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?, ?, NOW());
+        INSERT INTO messages (messageid, clientid, recipientid, messagebody, messagedate)
+        VALUES (?, ?, ?, ?, NOW());
       `;
 
       //run both queries
@@ -346,7 +378,7 @@ async getServiceRequestById(requestid) {
 
       connection.query(
         query2,
-        [messageid, clientid, recipientid, requestid, messagebody],
+        [messageid, clientid, recipientid, messagebody],
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
@@ -393,6 +425,9 @@ async serviceResponse(requestid, clientid, recipientid, adjustedPrice, timeWindo
 async createServiceOrder(orderid, requestid, finalprice, ordernotes) {
   try {
     const servicereq = await this.getServiceRequestById(requestid);
+    if (!servicereq) {
+      throw new Error(`Service request ${requestid} not found`);
+    };
     const typeoforder = servicereq.cleaningtype;
     console.log("servicereq:", servicereq);
 
@@ -475,22 +510,42 @@ async getMessagesBySender(clientid) {
   }
 }
 
-async getMessagesBetween(senderid, recipientid) {
+async getMessagesAccepted(clientid, recipientid) {
   try {
     const result = await new Promise((resolve, reject) => {
       const query = `
-        SELECT messageid, requestid, adjustedPrice, messagebody, messagedate
+        SELECT requestid, adjustedPrice, messagebody, messagedate
         FROM messages
-        WHERE clientid = ? AND recipientid = ?;
+        WHERE clientid = ? AND recipientid = ? AND requestid IS NOT NULL;
       `;
-      connection.query(query, [senderid, recipientid], (err, results) => {
+      connection.query(query, [clientid, recipientid], (err, results) => {
         if (err) reject(err);
         else resolve(results);
       });
     });
     return result;
   } catch (err) {
-    console.error("getMessagesBySender Error:", err);
+    console.error("getMessagesAccepted Error:", err);
+    throw err;
+  }
+}
+
+async getMessagesRejected(clientid, recipientid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT messagebody, messagedate
+        FROM messages
+        WHERE clientid = ? AND recipientid = ? AND requestid IS NULL;
+      `;
+      connection.query(query, [clientid, recipientid], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getMessagesRejected Error:", err);
     throw err;
   }
 }

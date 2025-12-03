@@ -19,6 +19,7 @@ CREATE TABLE servicereq (
   budget DECIMAL(10,2) NOT NULL,
   servicenotes VARCHAR(500),
   servicestatus BOOL,
+  isRejected BOOL,
   servicedate DATETIME,
   FOREIGN KEY (clientid) REFERENCES client(clientid)
 );
@@ -55,6 +56,7 @@ CREATE TABLE bill (
   explanations VARCHAR(500),
   disputes VARCHAR(500),
   ispaid BOOL,
+  billdate DATETIME,
   paydate DATETIME,
   FOREIGN KEY (orderid) REFERENCES orders(orderid)
 );

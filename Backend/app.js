@@ -105,13 +105,26 @@ app.get('/getAllCounterMessages', (request, response) => {
     .catch(err => console.log(err));
 });
 
-// getAll orders
+// get frequent clients
 app.get('/getFrequentClients', (request, response) => {
     
     const db = dbService.getDbServiceInstance();
 
     
     const result =  db.getFrequentClients(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
+// get uncommitted clients
+app.get('/getUncommittedClients', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getUncommittedClients(); // call a DB function
 
     result
     .then(data => response.json({data: data}))
@@ -277,7 +290,7 @@ app.post('/serviceReject', async (req, res) => {
         const servicereq = await db.getServiceRequestById(requestid);
         console.log("Service request data:", servicereq); // Log database query result
     
-        const recipientid = servicereq.client;
+        const recipientid = servicereq.clientid;
     
         const result = await db.serviceReject(
           messageid,
@@ -379,12 +392,25 @@ app.post('/servicequote', async (req, res) => {
       }
     });
 
-    //show annas messages
-    app.get('/getAnnaMessages', async (req, res) => {
+    //show annas messages accepted
+    app.get('/getAnnaMessagesAccepted', async (req, res) => {
         try {
             const clientid = req.session.clientid;
             const db = dbService.getDbServiceInstance();
-            const result = await db.getMessagesBetween('c67ebd4f-5d8c-4790-88d6-db7430af4730', clientid);
+            const result = await db.getMessagesAccepted('c67ebd4f-5d8c-4790-88d6-db7430af4730', clientid);
+            res.json({ success: true, data: result });
+            } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    //show annas messages
+    app.get('/getAnnaMessagesRejected', async (req, res) => {
+        try {
+            const clientid = req.session.clientid;
+            const db = dbService.getDbServiceInstance();
+            const result = await db.getMessagesRejected('c67ebd4f-5d8c-4790-88d6-db7430af4730', clientid);
             res.json({ success: true, data: result });
             } catch (err) {
             console.error(err);
