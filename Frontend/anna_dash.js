@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('http://localhost:5050/getFrequentClients')     
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
+    fetch('http://localhost:5050/getUncommittedClients')     
+    .then(response => response.json())
+    .then(data => loadHTMLTable(data['data']));
 });
 // when the addBtn is clicked
 /*const addBtn = document.querySelector('#add-name-btn');

@@ -217,6 +217,38 @@ async getFrequentClients(){
   }
 }
 
+async getUncommittedClients(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT c.firstname, c.lastname, COUNT(s.requestid) AS total_requests
+                            FROM client c, servicereq s
+                            WHERE c.clientid = s.clientid
+                              AND s.requestid NOT IN (
+                                SELECT requestid 
+                                FROM orders
+                                WHERE orderstatus = 1)
+                            GROUP BY c.firstname, c.lastname
+                            HAVING COUNT(s.requestid) >= 3;`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
 async getServiceRequestById(requestid) {
   try {
       const result = await new Promise((resolve, reject) => {
