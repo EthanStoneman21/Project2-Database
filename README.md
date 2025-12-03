@@ -52,6 +52,7 @@ CREATE TABLE orders (
 
 CREATE TABLE bill (
   billid VARCHAR(36) PRIMARY KEY,
+  clientid VARCHAR(36), 
   orderid VARCHAR(36),
   typeoforder VARCHAR(255) NOT NULL,
   finalprice DECIMAL(10,2) NOT NULL,
@@ -63,7 +64,8 @@ CREATE TABLE bill (
   ispaid BOOL,
   billdate DATETIME,
   paydate DATETIME,
-  FOREIGN KEY (orderid) REFERENCES orders(orderid)
+  FOREIGN KEY (orderid) REFERENCES orders(orderid),
+  FOREIGN KEY (clientid) REFERENCES client(clientid)
 );
 
 CREATE TABLE messages (

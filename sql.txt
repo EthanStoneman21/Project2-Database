@@ -47,6 +47,7 @@ CREATE TABLE orders (
 
 CREATE TABLE bill (
   billid VARCHAR(36) PRIMARY KEY,
+  clientid VARCHAR(36), 
   orderid VARCHAR(36),
   typeoforder VARCHAR(255) NOT NULL,
   finalprice DECIMAL(10,2) NOT NULL,
@@ -58,7 +59,8 @@ CREATE TABLE bill (
   ispaid BOOL,
   billdate DATETIME,
   paydate DATETIME,
-  FOREIGN KEY (orderid) REFERENCES orders(orderid)
+  FOREIGN KEY (orderid) REFERENCES orders(orderid),
+  FOREIGN KEY (clientid) REFERENCES client(clientid)
 );
 
 CREATE TABLE messages (
@@ -79,6 +81,7 @@ CREATE TABLE messages (
   FOREIGN KEY (billid) REFERENCES bill(billid)
 );
 
+--frequent clients search
 CREATE VIEW MostOrders(clientid, Num)
 AS
 SELECT clientid, COUNT(*) as Num
@@ -95,6 +98,7 @@ WHERE clientid IN (
     WHERE NUM = (SELECT MAX(NUM) FROM MostOrders)
 );
 
+--uncommitted clients search
 SELECT c.firstname, c.lastname, COUNT(s.requestid) AS total_requests
 FROM client c, servicereq s
 WHERE c.clientid = s.clientid
@@ -104,3 +108,38 @@ WHERE c.clientid = s.clientid
     WHERE orderstatus = 1)
 GROUP BY c.firstname, c.lastname
 HAVING COUNT(s.requestid) >= 3;
+
+--this months accepted quotes search
+SELECT o.orderid, o.requestid, o.orderdate, s.servicedate
+FROM orders o, servicereq s
+WHERE o.requestid = s.requestid
+    AND o.orderdate >= ?
+    AND o.orderdate < ?;
+
+--prospective clients search
+SELECT DISTINCT c.firstname, c.lastname
+FROM client c, servicereq s
+WHERE c.clientid NOT IN (
+    SELECT s.clientid
+    FROM servicereq s
+)
+AND c.clientid <>'c67ebd4f-5d8c-4790-88d6-db7430af4730';
+
+--largest job search
+
+CREATE VIEW MostRooms(servicereq, Num)
+AS
+SELECT numofrooms, COUNT(*) as Num
+FROM servicereq
+GROUP BY requestid;
+
+
+SELECT s.requestid, s.numofrooms, s.servicedate
+FROM servicereq s, orders o
+WHERE s.requestid = o.requestid AND o.orderstatus = 1
+  AND s.numofrooms = (
+      SELECT MAX(s2.numofrooms)
+      FROM servicereq s2, orders o2
+      WHERE s2.requestid = o2.requestid
+      AND o2.orderstatus = 1
+);
