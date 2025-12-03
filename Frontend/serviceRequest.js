@@ -18,8 +18,8 @@ requestForm.addEventListener('submit', async (e) => {
   const numofrooms = document.getElementById('SR-roomNum').value;
   const servicenotes = document.getElementById('SR-info').value;
   const servicedate = document.getElementById('SR-date').value;
+  const budget = document.getElementById('SR-budget').value;
   const servicestatus = "requested";
-  const budget = 0;
 
   if (!reqaddress || !cleaningtype || !numofrooms || !servicedate) {
     alert("Please fill in all required fields");

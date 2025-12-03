@@ -411,6 +411,106 @@ app.post('/servicequote', async (req, res) => {
         }
     });
 
+    app.get('/getAllBills', async (req, res) => {
+        try {
+            const clientid = req.session.clientid;
+            const db = dbService.getDbServiceInstance();
+            const result = await db.getAllBillsForClient(req.session.clientid);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+});
+
+app.get('/getUnpayedBills', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const bills = await db.getUnpayedBills();
+    res.json({ success: true, bills });
+  } catch (err) {
+    console.error("Get Unpayed Bills Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+//marks bill as paid
+app.post('/payBill', async (req, res) => {
+  try {
+    const { billid } = req.body;
+
+    const db = dbService.getDbServiceInstance();
+    const result = await db.payBill(billid);
+
+    res.json({ success: result.affectedRows > 0 });
+  } catch (err) {
+    console.error("Pay Bill Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// disputes bill
+app.post('/disputeBill', async (req, res) => {
+  try {
+    const { billid, disputes } = req.body;
+    if (!billid || !disputes) {
+      return res.status(400).json({ success: false, error: "Bill ID and dispute note are required" });
+    }
+
+    const db = dbService.getDbServiceInstance();
+    const result = await db.disputeBill(billid, disputes);
+
+    res.json({ success: result.affectedRows > 0 });
+  } catch (err) {
+    console.error("Dispute Bill Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/getDisputedBills', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const bills = await db.getDisputedBills();
+    res.json({ success: true, bills });
+  } catch (err) {
+    console.error("Get Disputed Bills Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// anna edit for disputes
+app.post('/editBill', async (req, res) => {
+  try {
+    const { billid, discounts, finalprice, explanations } = req.body;
+
+    const db = dbService.getDbServiceInstance();
+    const result = await db.editBill(billid, discounts, finalprice, explanations);
+
+    res.json({ success: result.affectedRows > 0 });
+  } catch (err) {
+    console.error("Edit Bill Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// get paid bills
+app.get('/getPaidBills', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const bills = await db.getPaidBills();
+    res.json({ success: true, bills });
+  } catch (err) {
+    console.error("Get Paid Bills Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+
+
+
+
   
 
 // set up the web server listener

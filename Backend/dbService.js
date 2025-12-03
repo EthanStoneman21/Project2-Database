@@ -495,15 +495,43 @@ async getMessagesBetween(senderid, recipientid) {
   }
 }
 
+async getClientIdByRequestId(requestid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `SELECT clientid FROM servicereq WHERE requestid = ?;`;
+      connection.query(query, [requestid], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows[0]?.clientid);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getClientIdByRequestId Error:", err);
+    throw err;
+  }
+}
+
 async completeOrder(orderid, typeoforder, finalprice, billnotes) {
   try {
     const billid = crypto.randomUUID();
 
+    // Find the requestid and clientid
+    const requestQuery = `SELECT requestid FROM orders WHERE orderid = ?;`;
+    const requestRow = await new Promise((resolve, reject) => {
+      connection.query(requestQuery, [orderid], (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows[0]);
+      });
+    });
+
+    const clientid = await this.getClientIdByRequestId(requestRow.requestid);
+
+
     const result = await new Promise((resolve, reject) => {
       //create bill
       const query = `
-        INSERT INTO bill (billid, orderid, typeoforder, finalprice, billnotes, billdate)
-        VALUES (?, ?, ?, ?, ?, NOW());
+        INSERT INTO bill (billid, orderid, clientid, typeoforder, finalprice, billnotes, billdate)
+        VALUES (?, ?, ?, ?, ?, ?, NOW());
       `;
 
       //update order status
@@ -515,7 +543,7 @@ async completeOrder(orderid, typeoforder, finalprice, billnotes) {
 
       connection.query(
         query,
-        [billid, orderid, typeoforder, finalprice, billnotes],
+        [billid, orderid, clientid, typeoforder, finalprice, billnotes],
         (err, insertresult) => {
           if (err) reject(err);
 
@@ -537,6 +565,165 @@ async completeOrder(orderid, typeoforder, finalprice, billnotes) {
     throw err;
   }
 }
+
+
+// gets logged in client's bills
+async getAllBillsForClient(clientid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT billid, orderid, finalprice, billnotes, billdate
+        FROM bill
+        WHERE clientid = ?;
+      `;
+      connection.query(query, [clientid], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getAllBillsForClient Error:", err);
+    throw err;
+  }
+}
+
+// gets all unpayed bills
+async getUnpayedBills() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT billid, orderid, clientid, finalprice, billnotes, billdate
+        FROM bill
+        WHERE ispaid IS NULL;
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getUnpayedBills Error:", err);
+    throw err;
+  }
+}
+
+
+//marks bill as paid
+async payBill(billid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        UPDATE bill
+        SET ispaid = 1,
+            paydate = NOW()
+        WHERE billid = ?;
+      `;
+      connection.query(query, [billid], (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("payBill Error:", err);
+    throw err;
+  }
+}
+
+
+async disputeBill(billid, disputes) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        UPDATE bill
+        SET disputes = ?
+        WHERE billid = ?;
+      `;
+      connection.query(query, [disputes, billid], (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("disputeBill Error:", err);
+    throw err;
+  }
+}
+
+
+async getDisputedBills() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT billid, orderid, finalprice, billnotes, billdate, disputes
+        FROM bill
+        WHERE disputes IS NOT NULL AND ispaid IS NULL;
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getDisputedBills Error:", err);
+    throw err;
+  }
+}
+
+
+// anna edit for disputes
+async editBill(billid, discounts, finalprice, explanations) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        UPDATE bill
+        SET discounts = ?, 
+            finalprice = ?, 
+            explanations = ?
+        WHERE billid = ?;
+      `;
+      connection.query(
+        query,
+        [discounts, finalprice, explanations, billid],
+        (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        }
+      );
+    });
+    return result;
+  } catch (err) {
+    console.error("editBill Error:", err);
+    throw err;
+  }
+}
+
+// get paid bills
+async getPaidBills() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT billid, orderid, clientid, finalprice, typeoforder, billnotes, billdate, paydate
+        FROM bill
+        WHERE ispaid = 1;
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getPaidBills Error:", err);
+    throw err;
+  }
+}
+
+
 
 
 
