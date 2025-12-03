@@ -1,12 +1,18 @@
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
     // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAnnaMessages', {
+    fetch('http://localhost:5050/getAnnaMessagesAccepted', {
         method: "GET",
         credentials: "include"
     })     
     .then(response => response.json())
-    .then(data => loadHTMLTable(data['data']));
+    .then(data => loadAcceptTable(data['data']));
+    fetch('http://localhost:5050/getAnnaMessagesRejected', {
+        method: "GET",
+        credentials: "include"
+    })     
+    .then(response => response.json())
+    .then(data => loadRejectTable(data['data']));
 });
 // when the addBtn is clicked
 /*const addBtn = document.querySelector('#add-name-btn');
@@ -123,8 +129,8 @@ function insertRowIntoTable(data){
 }
 
 
-function loadHTMLTable(data){
-    debug("index.js: loadHTMLTable called.");
+function loadAcceptTable(data){
+    debug("index.js: loadAcceptTable called.");
 
     const table = document.querySelector('#table tbody'); 
     
@@ -160,15 +166,13 @@ function loadHTMLTable(data){
     */
 
     let tableHtml = "";
-    data.forEach(function ({messageid, requestid, adjustedPrice, messagebody, messagedate}) {
+    data.forEach(function ({adjustedPrice, messagebody, messagedate, recipientid, requestid}) {
         tableHtml += "<tr>";
-        tableHtml += `<td>${messageid}</td>`;
-        tableHtml += `<td>${requestid}</td>`;
         tableHtml += `<td>$${adjustedPrice}</td>`;
         tableHtml += `<td>${messagebody}</td>`;
         tableHtml += `<td>${new Date(messagedate).toLocaleString()}</td>`;
         tableHtml += `<td><button class="accept-btn" data-requestid="${requestid}" data-finalprice="${adjustedPrice}">Accept</button></td>`;
-        tableHtml += `<td><button class="counter-btn" data-requestid="${requestid}">Counter</button></td>`;
+        tableHtml += `<td><button class="counter-btn" data-recipientid="${recipientid}">Counter</button></td>`;
         tableHtml += "</tr>";
       });
 
@@ -177,11 +181,11 @@ function loadHTMLTable(data){
      // when the reject button is clicked
   document.querySelectorAll('.counter-btn').forEach(btn => {
     btn.addEventListener('click', async function () {
-        const requestid = this.dataset.requestid; //same requestid
+        const recipientid = this.dataset.recipientid; //same requestid
         const note = prompt("Enter any notes:");
 
         const counter = {
-            requestid,
+            recipientid,
             note
         };
 
@@ -211,13 +215,13 @@ function loadHTMLTable(data){
     btn.addEventListener('click', async function () {
         const requestid = this.dataset.requestid; //same requestid
         const finalprice = this.dataset.finalprice; //same finalprice
-        const ordernote = prompt("Enter any notes:");
+        const ordernotes = prompt("Enter any notes:");
 
         const accept = {
             orderid: crypto.randomUUID(),
             requestid,
             finalprice,
-            ordernote
+            ordernotes
         };
 
         try {
@@ -241,4 +245,51 @@ function loadHTMLTable(data){
     })
 });
   
+}
+
+function loadRejectTable(data){
+    debug("index.js: loadRejectTable called.");
+
+    const table = document.querySelector('#table1 tbody'); 
+    
+    if(data.length === 0){
+        table.innerHTML = "<tr><td class='no-data' colspan='11'>No Data</td></tr>";
+        return;
+    }
+  
+    /*
+    In the following JavaScript code, the forEach method is used to iterate over the 
+    elements of the data array. The forEach method is a higher-order function 
+    that takes a callback function as its argument. The callback function is 
+    executed once for each element in the array.
+    
+    In this case, the callback function takes a single argument, which is an object 
+    destructuring pattern:
+
+
+    function ({id, name, date_added}) {
+        // ... code inside the callback function
+    }
+
+    This pattern is used to extract the id, name, and date_added properties from each 
+    element of the data array. The callback function is then executed for each element
+    in the array, and within the function, you can access these properties directly 
+    as variables (id, name, and date_added).
+
+    
+    In summary, the forEach method is a convenient way to iterate over each element in 
+    an array and perform some operation or execute a function for each element. 
+    The provided callback function is what gets executed for each element in the 
+    data array.
+    */
+
+    let tableHtml = "";
+    data.forEach(function ({messagebody, messagedate}) {
+        tableHtml += "<tr>";
+        tableHtml += `<td>${messagebody}</td>`;
+        tableHtml += `<td>${new Date(messagedate).toLocaleString()}</td>`;
+        tableHtml += "</tr>";
+      });
+
+    table.innerHTML = tableHtml;
 }

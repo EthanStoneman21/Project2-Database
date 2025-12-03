@@ -24,6 +24,7 @@ CREATE TABLE servicereq (
   budget DECIMAL(10,2) NOT NULL,
   servicenotes VARCHAR(500),
   servicestatus BOOL,
+  isRejected BOOL,
   servicedate DATETIME,
   FOREIGN KEY (clientid) REFERENCES client(clientid)
 );
