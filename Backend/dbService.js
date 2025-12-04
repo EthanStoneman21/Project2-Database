@@ -249,6 +249,69 @@ async getUncommittedClients(){
   }
 }
 
+async getProspectiveClients(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT DISTINCT c.firstname, c.lastname
+                            FROM client c, servicereq s
+                            WHERE c.clientid NOT IN (
+                                SELECT s.clientid
+                                FROM servicereq s
+                            )
+                            AND c.clientid <>'c67ebd4f-5d8c-4790-88d6-db7430af4730';`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
+async getLargestJobs(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT s.requestid, s.numofrooms, s.servicedate
+                            FROM servicereq s, orders o
+                            WHERE s.requestid = o.requestid AND o.orderstatus = 1
+                              AND s.numofrooms = (
+                                  SELECT MAX(s2.numofrooms)
+                                  FROM servicereq s2, orders o2
+                                  WHERE s2.requestid = o2.requestid
+                                  AND o2.orderstatus = 1
+                            );`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
+
 async getServiceRequestById(requestid) {
   try {
       const result = await new Promise((resolve, reject) => {
@@ -562,6 +625,36 @@ async getClientIdByRequestId(requestid) {
     return result;
   } catch (err) {
     console.error("getClientIdByRequestId Error:", err);
+    throw err;
+  }
+}
+
+async getAcceptedQuotesByMonthYear(year, month) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      //date rollover
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 1);
+
+      //format correct YYYY-MM-DD
+      const start = startDate.toISOString().split("T")[0];
+      const end = endDate.toISOString().split("T")[0];
+
+      const query = `
+      SELECT o.orderid, o.requestid, o.orderdate, s.servicedate
+      FROM orders o, servicereq s
+      WHERE o.requestid = s.requestid
+        AND o.orderdate >= ?
+        AND o.orderdate < ?;
+    `;
+      connection.query(query, [start, end], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getAcceptedQuotesByMonthYear Error:", err);
     throw err;
   }
 }

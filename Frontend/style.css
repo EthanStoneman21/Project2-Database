@@ -19,3 +19,69 @@
     padding: 8px;
     text-align: left;
 }
+
+#table2 {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#table2 th, #table2 td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}
+
+#table3 {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#table3 th, #table3 td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}
+
+#table4 {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#table4 th, #table4 td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}
+
+#table5 {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#table5 th, #table5 td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}
+
+#table6 {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#table6 th, #table6 td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}
+
+#table7 {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#table7 th, #table7 td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}

@@ -126,14 +126,6 @@ WHERE c.clientid NOT IN (
 AND c.clientid <>'c67ebd4f-5d8c-4790-88d6-db7430af4730';
 
 --largest job search
-
-CREATE VIEW MostRooms(servicereq, Num)
-AS
-SELECT numofrooms, COUNT(*) as Num
-FROM servicereq
-GROUP BY requestid;
-
-
 SELECT s.requestid, s.numofrooms, s.servicedate
 FROM servicereq s, orders o
 WHERE s.requestid = o.requestid AND o.orderstatus = 1

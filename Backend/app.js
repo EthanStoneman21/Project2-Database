@@ -131,6 +131,32 @@ app.get('/getUncommittedClients', (request, response) => {
     .catch(err => console.log(err));
 });
 
+// get prospective clients
+app.get('/getProspectiveClients', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getProspectiveClients(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
+// get largest job(s)
+app.get('/getLargestJobs', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getLargestJobs(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
 // update
 app.patch('/update', 
      (request, response) => {
@@ -411,6 +437,21 @@ app.post('/servicequote', async (req, res) => {
             const clientid = req.session.clientid;
             const db = dbService.getDbServiceInstance();
             const result = await db.getMessagesRejected('c67ebd4f-5d8c-4790-88d6-db7430af4730', clientid);
+            res.json({ success: true, data: result });
+            } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    //show quotes accepted in a given month
+    app.get('/acceptedquotes', async (req, res) => {
+        try {
+            const { month, year} = req.query;
+
+            const db = dbService.getDbServiceInstance();
+            result = await db.getAcceptedQuotesByMonthYear(year, month);
+
             res.json({ success: true, data: result });
             } catch (err) {
             console.error(err);
