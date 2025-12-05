@@ -18,6 +18,12 @@ function debug(data) {
   });
 }
 
+// when the back button is clicked
+const backBtn =  document.querySelector('#back-btn');
+backBtn.onclick = function (){
+            window.location.assign("./clientPage.html");
+}
+
 function loadHTMLTable(data) {
   const table = document.querySelector('#table tbody');
 

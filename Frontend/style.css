@@ -85,3 +85,126 @@
     padding: 8px;
     text-align: left;
 }
+
+#disputed-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#disputed-table th, #disputed-table td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}
+
+#unpaid-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#unpaid-table th, #unpaid-table td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}
+
+#paid-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#paid-table th, #paid-table td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: left;
+}
+
+form {
+    text-align: center;
+}
+
+h1 {
+    font-size: 48px;
+    text-align: center;
+    outline: #000;
+    font-family: "Noto Sans", sans-serif;
+    background-image: url(Animate.jpg);
+    background-size: color;
+    background-clip: text;
+    color: transparent;
+    animation: animate 20s linear infinite;
+}
+
+h2 {
+    text-align: center;
+}
+
+h3 {
+    text-align: center;
+}
+
+.form-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 50px;
+  }
+  
+  .register-section, .login-section {
+    flex: 1;
+    max-width: 400px;
+  }
+  
+
+@keyframes animate {
+    to {
+        background-position-x: -500px;
+    }
+}
+
+body, html {
+    background-image: linear-gradient(to right, rgb(153, 2, 153), rgb(2, 2, 153));
+    color: rgb(204, 222, 236);
+    height: 110%;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+input {
+    background-color: #9d85d4;
+    color: black;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+button {
+    text-align: center;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .button-container button {
+    margin: 0;
+  }
+
+  table th {
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+  
+  

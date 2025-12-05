@@ -47,41 +47,31 @@ function debug(data)
 // when the servreq button is clicked
 const servreqBtn =  document.querySelector('#servreq-btn');
 servreqBtn.onclick = function (){
-    alert("Anna Johnson Service Requests Button Clicked");
             window.location.assign("./servreqanna.html");
-            return;
 }
 
 // when the negotiations button is clicked
 const negotiationsBtn =  document.querySelector('#negotiations-btn');
 negotiationsBtn.onclick = function (){
-    alert("Anna Johnson Negotiations Page Button Clicked");
             window.location.assign("./negotiations.html");
-            return;
 }
 
 // when the orders button is clicked
 const ordersBtn =  document.querySelector('#orders-btn');
 ordersBtn.onclick = function (){
-    alert("Anna Johnson Orders Page Button Clicked");
             window.location.assign("./orders.html");
-            return;
 }
 
 // when the bills button is clicked
 const billsBtn =  document.querySelector('#bills-btn');
 billsBtn.onclick = function (){
-    alert("Anna Johnson Orders Bills Button Clicked");
             window.location.assign("./annabills.html");
-            return;
 }
 
 // when the payments button is clicked
 const paymentsBtn =  document.querySelector('#payments-btn');
 paymentsBtn.onclick = function (){
-    alert("Anna Johnson Orders Payments Button Clicked");
             window.location.assign("./payments.html");
-            return;
 }
 
 // when the submit button is clicked

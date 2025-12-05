@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(response => response.json())
 });
 
+// when the back button is clicked
+const backBtn =  document.querySelector('#back-btn');
+backBtn.onclick = function (){
+            window.location.assign("./clientPage.html");
+}
+
 
 const requestForm = document.getElementById('serviceRequest-form');
 requestForm.addEventListener('submit', async (e) => {

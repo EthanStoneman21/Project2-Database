@@ -32,6 +32,12 @@ respondBtn.onclick = function (){
 }
 */
 
+// when the back button is clicked
+const backBtn =  document.querySelector('#back-btn');
+backBtn.onclick = function (){
+            window.location.assign("./anna_dash.html");
+}
+
 let rowToDelete; 
 
 // when the delete button is clicked, since it is not part of the DOM tree, we need to do it differently
