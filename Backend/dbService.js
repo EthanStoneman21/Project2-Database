@@ -871,6 +871,90 @@ async getPaidBills() {
   }
 }
 
+// get overdue bills
+async getOverdueBills() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT billid, orderid, finalprice, billnotes, billdate
+        FROM bill
+        WHERE ispaid IS NULL
+          AND billdate < DATE_SUB(NOW(), INTERVAL 7 DAY);
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getOverdueBills Error:", err);
+    throw err;
+  }
+}
+
+// get bad clients
+async getBadClients() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT DISTINCT c.firstname, c.lastname
+        FROM client c
+        JOIN bill b ON c.clientid = b.clientid
+        WHERE b.ispaid IS NULL
+          AND b.billdate < DATE_SUB(NOW(), INTERVAL 7 DAY)
+          AND c.clientid NOT IN (
+            SELECT clientid
+            FROM bill
+            WHERE ispaid = 1
+          );
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getBadClients Error:", err);
+    throw err;
+  }
+}
+
+// get good clients
+async getGoodClients() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT DISTINCT c.firstname, c.lastname
+        FROM client c
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM bill b
+          WHERE b.clientid = c.clientid
+            AND b.ispaid = 1
+            AND TIMESTAMPDIFF(HOUR, b.billdate, b.paydate) > 24
+        )
+        AND EXISTS (
+          SELECT 1
+          FROM bill b2
+          WHERE b2.clientid = c.clientid
+            AND b2.ispaid = 1
+        );
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getGoodClients Error:", err);
+    throw err;
+  }
+}
+
+
 
 
 

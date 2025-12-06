@@ -13,6 +13,16 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch('http://localhost:5050/getLargestJobs')     
     .then(response => response.json())
     .then(data => largestJob(data['data']));
+    fetch('http://localhost:5050/getOverdueBills')
+    .then(response => response.json())
+    .then(data => loadOverdueBills(data['data']));
+    fetch('http://localhost:5050/getBadClients')
+    .then(response => response.json())
+    .then(data => loadBadClients(data['data']));
+    fetch('http://localhost:5050/getGoodClients')
+    .then(response => response.json())
+    .then(data => loadGoodClients(data['data']));
+
 });
 // when the addBtn is clicked
 /*const addBtn = document.querySelector('#add-name-btn');
@@ -320,4 +330,73 @@ function largestJob(data){
     });
 
     table.innerHTML = tableHtml;
+}
+
+
+function loadOverdueBills(data) {
+  debug("index.js: loadOverdueBills called.");
+
+  const table = document.querySelector('#table5 tbody'); 
+
+  if (!data || data.length === 0) {
+    table.innerHTML = "<tr><td class='no-data' colspan='5'>No Overdue Bills</td></tr>";
+    return;
+  }
+
+  let tableHtml = "";
+  data.forEach(function ({ billid, orderid, finalprice, billnotes, billdate }) {
+    tableHtml += "<tr>";
+    tableHtml += `<td>${billid}</td>`;
+    tableHtml += `<td>${orderid}</td>`;
+    tableHtml += `<td>$${finalprice}</td>`;
+    tableHtml += `<td>${billnotes || ""}</td>`;
+    tableHtml += `<td>${new Date(billdate).toLocaleDateString()}</td>`;
+    tableHtml += "</tr>";
+  });
+
+
+  table.innerHTML = tableHtml;
+
+}
+
+function loadBadClients(data) {
+  debug("index.js: loadBadClients called.");
+
+  const table = document.querySelector('#table6 tbody'); 
+
+  if (!data || data.length === 0) {
+    table.innerHTML = "<tr><td class='no-data' colspan='2'>No Bad Clients</td></tr>";
+    return;
+  }
+
+  let tableHtml = "";
+  data.forEach(function ({ firstname, lastname }) {
+    tableHtml += "<tr>";
+    tableHtml += `<td>${firstname}</td>`;
+    tableHtml += `<td>${lastname}</td>`;
+    tableHtml += "</tr>";
+  });
+
+  table.innerHTML = tableHtml;
+}
+
+function loadGoodClients(data) {
+  debug("index.js: loadGoodClients called.");
+
+  const table = document.querySelector('#table7 tbody'); 
+
+  if (!data || data.length === 0) {
+    table.innerHTML = "<tr><td class='no-data' colspan='2'>No Good Clients</td></tr>";
+    return;
+  }
+
+  let tableHtml = "";
+  data.forEach(function ({ firstname, lastname }) {
+    tableHtml += "<tr>";
+    tableHtml += `<td>${firstname}</td>`;
+    tableHtml += `<td>${lastname}</td>`;
+    tableHtml += "</tr>";
+  });
+
+  table.innerHTML = tableHtml;
 }

@@ -573,6 +573,43 @@ app.get('/getPaidBills', async (req, res) => {
   }
 });
 
+// get overdue bills for search
+app.get('/getOverdueBills', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const bills = await db.getOverdueBills();
+    res.json({ success: true, data: bills });
+  } catch (err) {
+    console.error("Get Overdue Bills Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// get bad clients for search
+app.get('/getBadClients', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const clients = await db.getBadClients();
+    res.json({ success: true, data: clients });
+  } catch (err) {
+    console.error("Get Bad Clients Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// get good clients for search
+app.get('/getGoodClients', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const clients = await db.getGoodClients();
+    res.json({ success: true, data: clients });
+  } catch (err) {
+    console.error("Get Good Clients Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 
 
