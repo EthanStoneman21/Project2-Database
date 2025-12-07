@@ -954,6 +954,23 @@ async getGoodClients() {
   }
 }
 
+// insert photos for service request
+async insertPhotos(requestid, photo1, photo2, photo3, photo4, photo5) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      INSERT INTO photos (requestid, photo1, photo2, photo3, photo4, photo5)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    connection.query(query, [requestid, photo1, photo2, photo3, photo4, photo5],
+      (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      }
+    );
+  });
+}
+
+
 
 
 

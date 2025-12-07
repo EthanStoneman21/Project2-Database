@@ -30,13 +30,13 @@ CREATE TABLE servicereq (
 );
 
 CREATE TABLE photos (
-  clientid VARCHAR(36) PRIMARY KEY,
+  requestid VARCHAR(36) PRIMARY KEY,
   photo1 VARCHAR(255),
   photo2 VARCHAR(255),
   photo3 VARCHAR(255),
   photo4 VARCHAR(255),
   photo5 VARCHAR(255),
-  FOREIGN KEY (clientid) REFERENCES client(clientid)
+  FOREIGN KEY (requestid) REFERENCES servicereq(requestid)
 );
 
 CREATE TABLE orders (

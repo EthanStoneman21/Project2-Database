@@ -277,7 +277,7 @@ app.post('/serviceRequest', async (req, res) => {
   try {
 
     console.log("Session object:", req.session); // debug
-    const { reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate } = req.body;
+    const { reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate, photo1, photo2, photo3, photo4, photo5 } = req.body;
 
     const clientid = req.session.clientid;
     console.log("Session clientid:", req.session.clientid);
@@ -296,6 +296,9 @@ app.post('/serviceRequest', async (req, res) => {
       servicestatus,
       servicedate
     );
+
+    await db.insertPhotos(requestid, photo1, photo2, photo3, photo4, photo5);
+
 
     res.json({ success: true, id: result.requestid });
   } catch (err) {
