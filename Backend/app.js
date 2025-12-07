@@ -277,7 +277,7 @@ app.post('/serviceRequest', async (req, res) => {
   try {
 
     console.log("Session object:", req.session); // debug
-    const { reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate } = req.body;
+    const { reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate, photo1, photo2, photo3, photo4, photo5 } = req.body;
 
     const clientid = req.session.clientid;
     console.log("Session clientid:", req.session.clientid);
@@ -296,6 +296,9 @@ app.post('/serviceRequest', async (req, res) => {
       servicestatus,
       servicedate
     );
+
+    await db.insertPhotos(requestid, photo1, photo2, photo3, photo4, photo5);
+
 
     res.json({ success: true, id: result.requestid });
   } catch (err) {
@@ -569,6 +572,43 @@ app.get('/getPaidBills', async (req, res) => {
     res.json({ success: true, bills });
   } catch (err) {
     console.error("Get Paid Bills Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// get overdue bills for search
+app.get('/getOverdueBills', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const bills = await db.getOverdueBills();
+    res.json({ success: true, data: bills });
+  } catch (err) {
+    console.error("Get Overdue Bills Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// get bad clients for search
+app.get('/getBadClients', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const clients = await db.getBadClients();
+    res.json({ success: true, data: clients });
+  } catch (err) {
+    console.error("Get Bad Clients Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// get good clients for search
+app.get('/getGoodClients', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const clients = await db.getGoodClients();
+    res.json({ success: true, data: clients });
+  } catch (err) {
+    console.error("Get Good Clients Error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 });
