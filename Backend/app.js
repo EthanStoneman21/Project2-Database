@@ -12,8 +12,10 @@ const app = express();
 
 const dbService = require('./dbService');
 
-
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost", "http://127.0.0.1:5500"],
+    credentials: true
+  }));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
@@ -24,6 +26,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: false,
+        httpOnly: true,
         maxAge: 1000 * 60 * 60
     }
 }));
@@ -76,6 +79,83 @@ app.get('/getAllservreq', (request, response) => {
     .catch(err => console.log(err));
 });
 
+// getAll orders
+app.get('/getAllOrders', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getAllOrders(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
+// getAll orders
+app.get('/getAllCounterMessages', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getAllCounterMessages(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
+// get frequent clients
+app.get('/getFrequentClients', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getFrequentClients(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
+// get uncommitted clients
+app.get('/getUncommittedClients', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getUncommittedClients(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
+// get prospective clients
+app.get('/getProspectiveClients', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getProspectiveClients(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
+
+// get largest job(s)
+app.get('/getLargestJobs', (request, response) => {
+    
+    const db = dbService.getDbServiceInstance();
+
+    
+    const result =  db.getLargestJobs(); // call a DB function
+
+    result
+    .then(data => response.json({data: data}))
+    .catch(err => console.log(err));
+});
 
 // update
 app.patch('/update', 
@@ -169,7 +249,8 @@ app.post('/login', async(request, response) => {
 
         if (result.success) {
             request.session.clientid = result.clientid;
-            response.status(200).json({ success: true, clientid: result.clientid }); //success
+            console.log("Session clientid set:", request.session.clientid); // Debug log
+            response.status(200).json({ success: true, clientid: result.clientid });
         }
         else {
             response.status(401).json(result); //failure
@@ -191,12 +272,17 @@ app.post('/logout', (request, response) => {
     });
 });
 
+
 app.post('/serviceRequest', async (req, res) => {
   try {
-    const { reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate } = req.body;
+
+    console.log("Session object:", req.session); // debug
+    const { reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate, photo1, photo2, photo3, photo4, photo5 } = req.body;
 
     const clientid = req.session.clientid;
+    console.log("Session clientid:", req.session.clientid);
     const requestid = crypto.randomUUID();
+
 
     const db = dbService.getDbServiceInstance();
     const result = await db.serviceRequest(
@@ -211,7 +297,10 @@ app.post('/serviceRequest', async (req, res) => {
       servicedate
     );
 
-    res.json({ success: true, id: result.insertId });
+    await db.insertPhotos(requestid, photo1, photo2, photo3, photo4, photo5);
+
+
+    res.json({ success: true, id: result.requestid });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: err.message });
@@ -221,39 +310,315 @@ app.post('/serviceRequest', async (req, res) => {
 //servicereject
 app.post('/serviceReject', async (req, res) => {
     try {
-      const { messageid, requestid, messagebody, messagedate } = req.body;
-  
-      const db = dbService.getDbServiceInstance();
-      const result = await db.serviceReject(
-        messageid,
-        requestid,
-        messagebody,
-        messagedate
-      );
-  
-      res.json({ success: true, id: result.insertId });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ success: false, error: err.message });
-    }
-  });
+        console.log("Session data:", req.session); // Log session data
 
-  //servicereject
-app.post('/servicequote', async (req, res) => {
-    try {
-        const { requestid, adjustedPrice, timeWindow, note } = req.body;
+        const { messageid, requestid, messagebody } = req.body;
+        const clientid = req.session.clientid;
     
         const db = dbService.getDbServiceInstance();
-        const result = await db.serviceResponse(requestid, adjustedPrice, timeWindow, note);
+        const servicereq = await db.getServiceRequestById(requestid);
+        console.log("Service request data:", servicereq); // Log database query result
+    
+        const recipientid = servicereq.clientid;
+    
+        const result = await db.serviceReject(
+          messageid,
+          clientid,
+          recipientid,
+          requestid,
+          messagebody
+        );
     
         res.json({ success: true, id: result.insertId });
       } catch (err) {
         console.error(err);
         res.status(500).json({ success: false, error: err.message });
       }
+  });
+
+  //service quote
+app.post('/servicequote', async (req, res) => {
+    try {
+        console.log("Session data:", req.session); // Log session data
+
+        const { requestid, adjustedPrice, timeWindow, note } = req.body;
+        const clientid = req.session.clientid;
+
+        if (!clientid) {
+            return res.status(400).json({ success: false, error: "Client ID is missing in session" });
+        }
+
+        const db = dbService.getDbServiceInstance();
+        const servicereq = await db.getServiceRequestById(requestid);
+        console.log("Service request data:", servicereq); // Log database query result
+
+        if (!servicereq || !servicereq.clientid) {
+            return res.status(400).json({ success: false, error: "Invalid request ID or missing client ID in service request" });
+        }
+
+        const recipientid = servicereq.clientid;
+
+        const result = await db.serviceResponse(
+            requestid,
+            clientid,
+            recipientid,
+            adjustedPrice,
+            timeWindow,
+            note
+        );
+
+        res.json({ success: true, id: result.insertId || requestid });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+
+  //serviceaccept
+  app.post('/serviceaccept', async (req, res) => {
+    try {
+        const { requestid, finalprice, ordernotes } = req.body;
+        const orderid = crypto.randomUUID();
+    
+        const db = dbService.getDbServiceInstance();
+
+        const result = await db.createServiceOrder(
+            orderid,
+            requestid,
+            finalprice,
+            ordernotes
+        );
+    
+        res.json({ success: true, id: result.insertId || requestid});
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
+      }
     });
 
+//serviceservicecounter
+  app.post('/servicecounter', async (req, res) => {
+    try {
+        const { requestid, note } = req.body;
+        const clientid = req.session.clientid;
+        const messageid = crypto.randomUUID();
+    
+        const db = dbService.getDbServiceInstance();
 
+        const result = await db.serviceCounter(
+            messageid,
+            clientid,
+            requestid,
+            note,
+            new Date().toISOString()
+        );
+    
+        res.json({ success: true, id: result.insertId || requestid});
+      } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, error: err.message });
+      }
+    });
+
+    //show annas messages accepted
+    app.get('/getAnnaMessagesAccepted', async (req, res) => {
+        try {
+            const clientid = req.session.clientid;
+            const db = dbService.getDbServiceInstance();
+            const result = await db.getMessagesAccepted('c67ebd4f-5d8c-4790-88d6-db7430af4730', clientid);
+            res.json({ success: true, data: result });
+            } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    //show annas messages
+    app.get('/getAnnaMessagesRejected', async (req, res) => {
+        try {
+            const clientid = req.session.clientid;
+            const db = dbService.getDbServiceInstance();
+            const result = await db.getMessagesRejected('c67ebd4f-5d8c-4790-88d6-db7430af4730', clientid);
+            res.json({ success: true, data: result });
+            } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    //show quotes accepted in a given month
+    app.get('/acceptedquotes', async (req, res) => {
+        try {
+            const { month, year} = req.query;
+
+            const db = dbService.getDbServiceInstance();
+            result = await db.getAcceptedQuotesByMonthYear(year, month);
+
+            res.json({ success: true, data: result });
+            } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    //complete order
+    app.post('/completeOrder', async (req, res) => {
+        try {
+            const { orderid, typeoforder, finalprice, billnotes } = req.body;
+
+        if (!orderid || !finalprice) {
+            return res.status(400).json({ success: false, error: "Order ID and final price are required" });
+        }
+
+        const db = dbService.getDbServiceInstance();
+        const result = await db.completeOrder(orderid, typeoforder, finalprice, billnotes);
+
+        res.json({ success: true, id: result.insertId || orderid });
+            } catch (err) {
+            console.error("Complete Order Error:", err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+    });
+
+    app.get('/getAllBills', async (req, res) => {
+        try {
+            const clientid = req.session.clientid;
+            const db = dbService.getDbServiceInstance();
+            const result = await db.getAllBillsForClient(req.session.clientid);
+            res.json({ success: true, data: result });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, error: err.message });
+        }
+});
+
+app.get('/getUnpayedBills', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const bills = await db.getUnpayedBills();
+    res.json({ success: true, bills });
+  } catch (err) {
+    console.error("Get Unpayed Bills Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+//marks bill as paid
+app.post('/payBill', async (req, res) => {
+  try {
+    const { billid } = req.body;
+
+    const db = dbService.getDbServiceInstance();
+    const result = await db.payBill(billid);
+
+    res.json({ success: result.affectedRows > 0 });
+  } catch (err) {
+    console.error("Pay Bill Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// disputes bill
+app.post('/disputeBill', async (req, res) => {
+  try {
+    const { billid, disputes } = req.body;
+    if (!billid || !disputes) {
+      return res.status(400).json({ success: false, error: "Bill ID and dispute note are required" });
+    }
+
+    const db = dbService.getDbServiceInstance();
+    const result = await db.disputeBill(billid, disputes);
+
+    res.json({ success: result.affectedRows > 0 });
+  } catch (err) {
+    console.error("Dispute Bill Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/getDisputedBills', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const bills = await db.getDisputedBills();
+    res.json({ success: true, bills });
+  } catch (err) {
+    console.error("Get Disputed Bills Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// anna edit for disputes
+app.post('/editBill', async (req, res) => {
+  try {
+    const { billid, discounts, finalprice, explanations } = req.body;
+
+    const db = dbService.getDbServiceInstance();
+    const result = await db.editBill(billid, discounts, finalprice, explanations);
+
+    res.json({ success: result.affectedRows > 0 });
+  } catch (err) {
+    console.error("Edit Bill Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// get paid bills
+app.get('/getPaidBills', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const bills = await db.getPaidBills();
+    res.json({ success: true, bills });
+  } catch (err) {
+    console.error("Get Paid Bills Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// get overdue bills for search
+app.get('/getOverdueBills', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const bills = await db.getOverdueBills();
+    res.json({ success: true, data: bills });
+  } catch (err) {
+    console.error("Get Overdue Bills Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// get bad clients for search
+app.get('/getBadClients', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const clients = await db.getBadClients();
+    res.json({ success: true, data: clients });
+  } catch (err) {
+    console.error("Get Bad Clients Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// get good clients for search
+app.get('/getGoodClients', async (req, res) => {
+  try {
+    const db = dbService.getDbServiceInstance();
+    const clients = await db.getGoodClients();
+    res.json({ success: true, data: clients });
+  } catch (err) {
+    console.error("Get Good Clients Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+
+
+
+
+  
 
 // set up the web server listener
 // if we use .env to configure

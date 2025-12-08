@@ -1,0 +1,169 @@
+CREATE TABLE client (
+  clientid VARCHAR(36) PRIMARY KEY,
+  firstname VARCHAR(50) NOT NULL,
+  lastname VARCHAR(50) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  phonenum VARCHAR(255) NOT NULL,
+  creditcard VARCHAR(255) NOT NULL,
+  clientdate DATETIME
+);
+
+CREATE TABLE servicereq (
+  requestid VARCHAR(36) PRIMARY KEY,
+  clientid VARCHAR(36),
+  reqaddress VARCHAR(255) NOT NULL,
+  cleaningtype VARCHAR(255) NOT NULL,
+  numofrooms INT NOT NULL,
+  budget DECIMAL(10,2) NOT NULL,
+  servicenotes VARCHAR(500),
+  servicestatus BOOL,
+  isRejected BOOL,
+  servicedate DATETIME,
+  FOREIGN KEY (clientid) REFERENCES client(clientid)
+);
+
+CREATE TABLE photos (
+  clientid VARCHAR(36) PRIMARY KEY,
+  photo1 VARCHAR(255),
+  photo2 VARCHAR(255),
+  photo3 VARCHAR(255),
+  photo4 VARCHAR(255),
+  photo5 VARCHAR(255),
+  FOREIGN KEY (clientid) REFERENCES client(clientid)
+);
+
+CREATE TABLE orders (
+  orderid VARCHAR(36) PRIMARY KEY,
+  requestid VARCHAR(36),
+  typeoforder VARCHAR(255) NOT NULL,
+  finalprice DECIMAL(10,2) NOT NULL,
+  ordernotes VARCHAR(500),
+  orderstatus BOOL,
+  orderdate DATETIME,
+  FOREIGN KEY (requestid) REFERENCES servicereq(requestid)
+);
+
+CREATE TABLE bill (
+  billid VARCHAR(36) PRIMARY KEY,
+  clientid VARCHAR(36), 
+  orderid VARCHAR(36),
+  typeoforder VARCHAR(255) NOT NULL,
+  finalprice DECIMAL(10,2) NOT NULL,
+  discounts DECIMAL(10,2),
+  adjustments DECIMAL(10,2),
+  billnotes VARCHAR(500),
+  explanations VARCHAR(500),
+  disputes VARCHAR(500),
+  ispaid BOOL,
+  billdate DATETIME,
+  paydate DATETIME,
+  FOREIGN KEY (orderid) REFERENCES orders(orderid),
+  FOREIGN KEY (clientid) REFERENCES client(clientid)
+);
+
+CREATE TABLE messages (
+  messageid VARCHAR(36) PRIMARY KEY,
+  clientid VARCHAR(36),
+  recipientid VARCHAR(36),
+  requestid VARCHAR(36),
+  adjustedPrice DECIMAL(10,2),
+  counternote VARCHAR(500),
+  messagebody VARCHAR(500),
+  messagedate DATETIME,
+  FOREIGN KEY (clientid) REFERENCES client(clientid),
+  FOREIGN KEY (recipientid) REFERENCES client(clientid),
+  FOREIGN KEY (requestid) REFERENCES servicereq(requestid),
+);
+
+--frequent clients search
+CREATE VIEW MostOrders(clientid, Num)
+AS
+SELECT clientid, COUNT(*) as Num
+FROM servicereq
+WHERE servicestatus = 1
+GROUP BY clientid;
+
+
+SELECT firstname, lastname
+FROM client
+WHERE clientid IN (
+    SELECT clientid
+    FROM MostOrders
+    WHERE NUM = (SELECT MAX(NUM) FROM MostOrders)
+);
+
+--uncommitted clients search
+SELECT c.firstname, c.lastname, COUNT(s.requestid) AS total_requests
+FROM client c, servicereq s
+WHERE c.clientid = s.clientid
+  AND s.requestid NOT IN (
+    SELECT requestid 
+    FROM orders
+    WHERE orderstatus = 1)
+GROUP BY c.firstname, c.lastname
+HAVING COUNT(s.requestid) >= 3;
+
+--this months accepted quotes search
+SELECT o.orderid, o.requestid, o.orderdate, s.servicedate
+FROM orders o, servicereq s
+WHERE o.requestid = s.requestid
+    AND o.orderdate >= ?
+    AND o.orderdate < ?;
+
+--prospective clients search
+SELECT DISTINCT c.firstname, c.lastname
+FROM client c, servicereq s
+WHERE c.clientid NOT IN (
+    SELECT s.clientid
+    FROM servicereq s
+)
+AND c.clientid <> 'c67ebd4f-5d8c-4790-88d6-db7430af4730';
+
+--largest job search
+SELECT s.requestid, s.numofrooms, s.servicedate
+FROM servicereq s, orders o
+WHERE s.requestid = o.requestid AND o.orderstatus = 1
+  AND s.numofrooms = (
+      SELECT MAX(s2.numofrooms)
+      FROM servicereq s2, orders o2
+      WHERE s2.requestid = o2.requestid
+      AND o2.orderstatus = 1
+);
+
+--overdue bills greater than 1 week
+SELECT billid, orderid, finalprice, billnotes, billdate
+        FROM bill
+        WHERE ispaid IS NULL
+          AND billdate < DATE_SUB(NOW(), INTERVAL 7 DAY
+);
+
+--bad clients
+SELECT DISTINCT c.firstname, c.lastname
+        FROM client c, bill b
+        WHERE b.clientid = c.clientid
+        AND b.ispaid IS NULL
+          AND b.billdate < DATE_SUB(NOW(), INTERVAL 7 DAY)
+          AND c.clientid NOT IN (
+            SELECT clientid
+            FROM bill
+            WHERE ispaid = 1
+);
+      
+--good clients
+SELECT DISTINCT c.firstname, c.lastname
+        FROM client c
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM bill b
+          WHERE b.clientid = c.clientid
+            AND b.ispaid = 1
+            AND TIMESTAMPDIFF(HOUR, b.billdate, b.paydate) > 24
+        )
+        AND EXISTS (
+          SELECT 1
+          FROM bill b2
+          WHERE b2.clientid = c.clientid
+            AND b2.ispaid = 1
+);

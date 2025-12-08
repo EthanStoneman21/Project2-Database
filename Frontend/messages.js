@@ -1,12 +1,18 @@
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
     // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAllservreq', {
+    fetch('http://localhost:5050/getAnnaMessagesAccepted', {
         method: "GET",
         credentials: "include"
     })     
     .then(response => response.json())
-    .then(data => loadHTMLTable(data['data']));
+    .then(data => loadAcceptTable(data['data']));
+    fetch('http://localhost:5050/getAnnaMessagesRejected', {
+        method: "GET",
+        credentials: "include"
+    })     
+    .then(response => response.json())
+    .then(data => loadRejectTable(data['data']));
 });
 // when the addBtn is clicked
 /*const addBtn = document.querySelector('#add-name-btn');
@@ -34,12 +40,6 @@ respondBtn.onclick = function (){
             return;
 }
 */
-
-// when the back button is clicked
-const backBtn =  document.querySelector('#back-btn');
-backBtn.onclick = function (){
-            window.location.assign("./anna_dash.html");
-}
 
 let rowToDelete; 
 
@@ -72,6 +72,12 @@ function showEditRowInterface(id){
     idToUpdate = id;
     debug("id set!");
     debug(idToUpdate+"");
+}
+
+// when the back button is clicked
+const backBtn =  document.querySelector('#back-btn');
+backBtn.onclick = function (){
+            window.location.assign("./clientPage.html");
 }
 
 
@@ -129,8 +135,8 @@ function insertRowIntoTable(data){
 }
 
 
-function loadHTMLTable(data){
-    debug("index.js: loadHTMLTable called.");
+function loadAcceptTable(data){
+    debug("index.js: loadAcceptTable called.");
 
     const table = document.querySelector('#table tbody'); 
     
@@ -166,49 +172,40 @@ function loadHTMLTable(data){
     */
 
     let tableHtml = "";
-    data.filter(item => item.servicestatus === 0).forEach(function ({requestid, clientid, reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate}) {
+    data.forEach(function ({adjustedPrice, messagebody, messagedate, recipientid, requestid}) {
         tableHtml += "<tr>";
-        tableHtml += `<td>${requestid}</td>`;
-        tableHtml += `<td>${clientid}</td>`;
-        tableHtml += `<td>${reqaddress}</td>`;
-        tableHtml += `<td>${cleaningtype}</td>`;
-        tableHtml += `<td>${numofrooms}</td>`;
-        tableHtml += `<td>${budget}</td>`;
-        tableHtml += `<td>${servicenotes}</td>`;
-        tableHtml += `<td>${servicestatus}</td>`;
-        tableHtml += `<td>${new Date(servicedate).toLocaleDateString()}</td>`;
-        tableHtml += `<td><button class="reject-btn" data-requestid="${requestid}">Reject</button></td>`;
-        tableHtml += `<td><button class="quote-btn" data-requestid="${requestid}">Quote</button></td>`;
+        tableHtml += `<td>$${adjustedPrice}</td>`;
+        tableHtml += `<td>${messagebody}</td>`;
+        tableHtml += `<td>${new Date(messagedate).toLocaleString()}</td>`;
+        tableHtml += `<td><button class="accept-btn" data-requestid="${requestid}" data-finalprice="${adjustedPrice}">Accept</button></td>`;
+        tableHtml += `<td><button class="counter-btn" data-recipientid="${recipientid}">Counter</button></td>`;
         tableHtml += "</tr>";
-    });
+      });
 
     table.innerHTML = tableHtml;
 
-    // when the reject button is clicked
-  document.querySelectorAll('.reject-btn').forEach(btn => {
+     // when the reject button is clicked
+  document.querySelectorAll('.counter-btn').forEach(btn => {
     btn.addEventListener('click', async function () {
-        const requestid = this.dataset.requestid; //same requestid
+        const recipientid = this.dataset.recipientid; //same requestid
+        const note = prompt("Enter any notes:");
 
-        const messagebody = prompt("Enter rejection note.");
-
-        const rejection = {
-            messageid: crypto.randomUUID(),
-            requestid,
-            messagebody,
-            messagedate: new Date().toISOString()
+        const counter = {
+            recipientid,
+            note
         };
 
         try {
-            const response = await fetch('http://localhost:5050/serviceReject', {
+            const response = await fetch('http://localhost:5050/servicecounter', {
                 method: 'POST',
                 headers: { 'Content-Type' : 'application/json'},
-                body: JSON.stringify(rejection),
+                body: JSON.stringify(counter),
                 credentials: 'include'
             });
 
             const result = await response.json();
             if (result.success) {
-                alert(`Request ${requestid} rejected with note: ${messagebody}`);
+                alert(`Countered!`);
             } else {
                 alert(result.error);
             }
@@ -219,41 +216,86 @@ function loadHTMLTable(data){
     })
 });
 
- // when the quote button is clicked
- document.querySelectorAll('.quote-btn').forEach(btn => {
+   // when the accept button is clicked
+   document.querySelectorAll('.accept-btn').forEach(btn => {
     btn.addEventListener('click', async function () {
-        const requestid = this.dataset.requestid;
-    
-        const adjustedPrice = prompt("Enter proposed price:");
-        const timeWindow = prompt("Enter proposed time window:");
-        const note = prompt("Enter optional note:");
-    
-        const quote = {
+        const requestid = this.dataset.requestid; //same requestid
+        const finalprice = this.dataset.finalprice; //same finalprice
+        const ordernotes = prompt("Enter any notes:");
+
+        const accept = {
+            orderid: crypto.randomUUID(),
             requestid,
-            adjustedPrice,
-            timeWindow,
-            note
+            finalprice,
+            ordernotes
         };
-    
+
         try {
-            const response = await fetch('http://localhost:5050/servicequote', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(quote),
-            credentials: 'include'
+            const response = await fetch('http://localhost:5050/serviceaccept', {
+                method: 'POST',
+                headers: { 'Content-Type' : 'application/json'},
+                body: JSON.stringify(accept),
+                credentials: 'include'
             });
-    
+
             const result = await response.json();
             if (result.success) {
-            alert(`Quote submitted for request ${requestid}`);
+                alert(`Accepted!`);
             } else {
-            alert(result.error);
+                alert(result.error);
             }
         } catch (err) {
             console.error(err);
             alert("Server error");
         }
-        });
-    });
+    })
+});
   
+}
+
+function loadRejectTable(data){
+    debug("index.js: loadRejectTable called.");
+
+    const table = document.querySelector('#table1 tbody'); 
+    
+    if(data.length === 0){
+        table.innerHTML = "<tr><td class='no-data' colspan='11'>No Data</td></tr>";
+        return;
+    }
+  
+    /*
+    In the following JavaScript code, the forEach method is used to iterate over the 
+    elements of the data array. The forEach method is a higher-order function 
+    that takes a callback function as its argument. The callback function is 
+    executed once for each element in the array.
+    
+    In this case, the callback function takes a single argument, which is an object 
+    destructuring pattern:
+
+
+    function ({id, name, date_added}) {
+        // ... code inside the callback function
+    }
+
+    This pattern is used to extract the id, name, and date_added properties from each 
+    element of the data array. The callback function is then executed for each element
+    in the array, and within the function, you can access these properties directly 
+    as variables (id, name, and date_added).
+
+    
+    In summary, the forEach method is a convenient way to iterate over each element in 
+    an array and perform some operation or execute a function for each element. 
+    The provided callback function is what gets executed for each element in the 
+    data array.
+    */
+
+    let tableHtml = "";
+    data.forEach(function ({messagebody, messagedate}) {
+        tableHtml += "<tr>";
+        tableHtml += `<td>${messagebody}</td>`;
+        tableHtml += `<td>${new Date(messagedate).toLocaleString()}</td>`;
+        tableHtml += "</tr>";
+      });
+
+    table.innerHTML = tableHtml;
 }

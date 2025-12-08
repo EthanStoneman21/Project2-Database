@@ -137,100 +137,202 @@ class DbService{
         }
    }
 
-   async insertNewName(name){
-         try{
-            const dateAdded = new Date();
-            // use await to call an asynchronous function
-            const insertId = await new Promise((resolve, reject) => 
-            {
-               const query = "INSERT INTO users (name, date_added) VALUES (?, ?);";
-               connection.query(query, [name, dateAdded], (err, result) => {
-                   if(err) reject(new Error(err.message));
-                   else resolve(result.insertId);
-               });
-            });
-            console.log(insertId);  // for debugging to see the result of select
-            return{
-                 id: insertId,
-                 name: name,
-                 dateAdded: dateAdded
-            }
-         } catch(error){
-               console.log(error);
-         }
-   }
-
-
-
-
-   async searchByName(name){
-        try{
-             const dateAdded = new Date();
-             // use await to call an asynchronous function
-             const response = await new Promise((resolve, reject) => 
-                  {
-                     const query = "SELECT * FROM users where username = ?;";
-                     connection.query(query, [name], (err, results) => {
-                         if(err) reject(new Error(err.message));
-                         else resolve(results);
-                     });
-                  }
-             );
-
-             // console.log(response);  // for debugging to see the result of select
-             return response;
-
-         }  catch(error){
-            console.log(error);
-         }
-   }
-
-   async deleteRowById(id){
-         try{
-              id = parseInt(id, 10);
-              // use await to call an asynchronous function
-              const response = await new Promise((resolve, reject) => 
-                  {
-                     const query = "DELETE FROM users WHERE userid = ?;";
-                     connection.query(query, [id], (err, result) => {
-                          if(err) reject(new Error(err.message));
-                          else resolve(result.affectedRows);
-                     });
-                  }
-               );
-
-               console.log(response);  // for debugging to see the result of select
-               return response === 1? true: false;
-
-         }  catch(error){
-              console.log(error);
-         }
-   }
-
-  
-  async updateNameById(id, newName){
-      try{
-           console.log("dbService: ");
-           console.log(id);
-           console.log(newName);
-           id = parseInt(id, 10);
-           // use await to call an asynchronous function
-           const response = await new Promise((resolve, reject) => 
-               {
-                  const query = "UPDATE client SET firstname = ? WHERE userid = ?;";
-                  connection.query(query, [newName, id], (err, result) => {
+async getAllOrders(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = "SELECT * FROM orders;";
+            connection.query(query, 
+                 (err, results) => {
                        if(err) reject(new Error(err.message));
-                       else resolve(result.affectedRows);
-                  });
-               }
+                       else resolve(results);
+                 }
             );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
 
-            // console.log(response);  // for debugging to see the result of select
-            return response === 1? true: false;
-      }  catch(error){
-         console.log(error);
-      }
+  }  catch(error){
+     console.log(error);
   }
+}
+
+async getAllCounterMessages(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT * 
+                           FROM messages
+                           WHERE counternote IS NOT NULL;`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
+async getFrequentClients(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT firstname, lastname
+                            FROM client
+                            WHERE clientid IN (
+                                SELECT clientid
+                                FROM MostOrders
+                                WHERE NUM = (SELECT MAX(NUM) FROM MostOrders)
+                            );`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
+async getUncommittedClients(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT c.firstname, c.lastname, COUNT(s.requestid) AS total_requests
+                            FROM client c, servicereq s
+                            WHERE c.clientid = s.clientid
+                              AND s.requestid NOT IN (
+                                SELECT requestid 
+                                FROM orders
+                                WHERE orderstatus = 1)
+                            GROUP BY c.firstname, c.lastname
+                            HAVING COUNT(s.requestid) >= 3;`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
+async getProspectiveClients(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT DISTINCT c.firstname, c.lastname
+                            FROM client c, servicereq s
+                            WHERE c.clientid NOT IN (
+                                SELECT s.clientid
+                                FROM servicereq s
+                            )
+                            AND c.clientid <>'c67ebd4f-5d8c-4790-88d6-db7430af4730';`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
+async getLargestJobs(){
+  try{
+     // use await to call an asynchronous function
+     const response = await new Promise((resolve, reject) => 
+        {
+            const query = `SELECT s.requestid, s.numofrooms, s.servicedate
+                            FROM servicereq s, orders o
+                            WHERE s.requestid = o.requestid AND o.orderstatus = 1
+                              AND s.numofrooms = (
+                                  SELECT MAX(s2.numofrooms)
+                                  FROM servicereq s2, orders o2
+                                  WHERE s2.requestid = o2.requestid
+                                  AND o2.orderstatus = 1
+                            );`;
+            connection.query(query, 
+                 (err, results) => {
+                       if(err) reject(new Error(err.message));
+                       else resolve(results);
+                 }
+            );
+         }
+      );
+  
+      // console.log("dbServices.js: search result:");
+      // console.log(response);  // for debugging to see the result of select
+      return response;
+
+  }  catch(error){
+     console.log(error);
+  }
+}
+
+
+async getServiceRequestById(requestid) {
+  try {
+      const result = await new Promise((resolve, reject) => {
+          const query = `
+              SELECT *
+              FROM servicereq
+              WHERE requestid = ?;
+          `;
+          connection.query(query, [requestid], (err, results) => {
+              if (err) reject(err);
+              else resolve(results[0]); // Ensure we return the first result
+          });
+      });
+
+      console.log("getServiceRequestById result:", result); // Debugging log
+      return result;
+  } catch (err) {
+      console.error("getServiceRequestById Error:", err);
+      throw err;
+  }
+}
 
   async registerClient(clientid, firstname, lastname, password, email, address, phonenum, creditcard, clientdate) {
    try {
@@ -293,6 +395,7 @@ class DbService{
      return { success: false, message: "An error occurred during login" };
    }
  }
+ 
 
  async serviceRequest(requestid, clientid, reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate) {
    try {
@@ -319,17 +422,17 @@ class DbService{
  } 
 
  //reject method
- async serviceReject(messageid, requestid, messagebody, messagedate) {
+ async serviceReject(messageid, clientid, recipientid, requestid, messagebody) {
   try {
     const result = await new Promise((resolve, reject) => {
       const query1 = `
         UPDATE servicereq
-        SET servicestatus = 0
+        SET isRejected = 1
         WHERE requestid = ?;
       `;
       const query2 = `
-        INSERT INTO messages (messageid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?);
+        INSERT INTO messages (messageid, clientid, recipientid, messagebody, messagedate)
+        VALUES (?, ?, ?, ?, NOW());
       `;
 
       //run both queries
@@ -338,7 +441,7 @@ class DbService{
 
       connection.query(
         query2,
-        [messageid, requestid, messagebody, messagedate],
+        [messageid, clientid, recipientid, messagebody],
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
@@ -354,20 +457,20 @@ class DbService{
 } 
 
 //response method
-async serviceResponse(requestid, adjustedPrice, timeWindow, note) {
+async serviceResponse(requestid, clientid, recipientid, adjustedPrice, timeWindow, note) {
   try {
     const result = await new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO messages (messageid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?);
+        INSERT INTO messages (messageid, clientid, recipientid, requestid, adjustedPrice, messagebody, messagedate)
+        VALUES (?, ?, ?, ?, ?, ?, NOW());
       `;
 
       const messageid = crypto.randomUUID();
-      const messageBody = `Quote proposed = Price: $${adjustedPrice}, Time: ${timeWindow}, Note: ${note}`;
+      const messageBody = `Quote proposed = Time: ${timeWindow}, Note: ${note}`;
 
       connection.query(
         query,
-        [messageid, requestid, messageBody],
+        [messageid, clientid, recipientid, requestid, adjustedPrice, messageBody],
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
@@ -382,56 +485,60 @@ async serviceResponse(requestid, adjustedPrice, timeWindow, note) {
   }
 }
 
-//client accepts work in progress
-async clientAccepts(messageid, requestid, messagebody, messagedate) {
+async createServiceOrder(orderid, requestid, finalprice, ordernotes) {
   try {
+    const servicereq = await this.getServiceRequestById(requestid);
+    if (!servicereq) {
+      throw new Error(`Service request ${requestid} not found`);
+    };
+    const typeoforder = servicereq.cleaningtype;
+    console.log("servicereq:", servicereq);
+
+
     const result = await new Promise((resolve, reject) => {
-      const query1 = `
+      const insertQuery = `
+        INSERT INTO orders (orderid, requestid, typeoforder, finalprice, ordernotes, orderstatus, orderdate)
+        VALUES (?, ?, ?, ?, ?, ?, NOW());
+      `;
+      const updateQuery = `
         UPDATE servicereq
         SET servicestatus = 1
         WHERE requestid = ?;
       `;
-      const query2 = `
-        INSERT INTO orders (messageid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?);
-      `;
 
-      //run both queries
-      connection.query(query1, [requestid], (err) => {
-        if (err) reject(err);
+      // run both queries in sequence
+      connection.query(insertQuery,
+        [orderid, requestid, typeoforder, finalprice, ordernotes, false],
+        (err, insertResult) => {
+          if (err) return reject(err);
 
-      connection.query(
-        query2,
-        [messageid, requestid, messagebody, messagedate],
-        (err, result) => {
-          if (err) reject(err);
-          else resolve(result);
-      });
+          connection.query(updateQuery, [requestid], (err) => {
+            if (err) return reject(err);
+            resolve(insertResult);
+          });
+        }
+      );
     });
-  });
 
     return result;
   } catch (err) {
-    console.error("Request Error:", err);
+    console.error("Order Error:", err);
     throw err;
   }
-} 
+}
 
-//client renegotiates work in progress
-async clientRenogotiate(requestid, note) {
+
+async serviceCounter(messageid, clientid, requestid, counternote, messagedate) {
   try {
     const result = await new Promise((resolve, reject) => {
       const query = `
-        INSERT INTO messages (messageid, requestid, messagebody, messagedate)
-        VALUES (?, ?, ?, ?);
+        INSERT INTO messages (messageid, clientid,requestid, counternote, messagedate)
+        VALUES (?, ?, ?, ?, ?);
       `;
-
-      const messageid = crypto.randomUUID();
-      const messageBody = `Counter note ${note}`;
 
       connection.query(
         query,
-        [messageid, requestid, messageBody],
+        [messageid, clientid, requestid, counternote, messagedate],
         (err, result) => {
           if (err) reject(err);
           else resolve(result);
@@ -441,10 +548,433 @@ async clientRenogotiate(requestid, note) {
 
     return result;
   } catch (err) {
-    console.error("Quote Error:", err);
+    console.error("Counter Error:", err);
     throw err;
   }
 }
+
+async getMessagesBySender(clientid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT messageid, requestid, messagebody, messagedate, recipientid
+        FROM messages
+        WHERE clientid = ?;
+      `;
+      connection.query(query, [clientid], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getMessagesBySender Error:", err);
+    throw err;
+  }
+}
+
+async getMessagesAccepted(clientid, recipientid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT requestid, adjustedPrice, messagebody, messagedate
+        FROM messages
+        WHERE clientid = ? AND recipientid = ? AND requestid IS NOT NULL;
+      `;
+      connection.query(query, [clientid, recipientid], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getMessagesAccepted Error:", err);
+    throw err;
+  }
+}
+
+async getMessagesRejected(clientid, recipientid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT messagebody, messagedate
+        FROM messages
+        WHERE clientid = ? AND recipientid = ? AND requestid IS NULL;
+      `;
+      connection.query(query, [clientid, recipientid], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getMessagesRejected Error:", err);
+    throw err;
+  }
+}
+
+async getClientIdByRequestId(requestid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `SELECT clientid FROM servicereq WHERE requestid = ?;`;
+      connection.query(query, [requestid], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows[0]?.clientid);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getClientIdByRequestId Error:", err);
+    throw err;
+  }
+}
+
+async getAcceptedQuotesByMonthYear(year, month) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      //date rollover
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 1);
+
+      //format correct YYYY-MM-DD
+      const start = startDate.toISOString().split("T")[0];
+      const end = endDate.toISOString().split("T")[0];
+
+      const query = `
+      SELECT o.orderid, o.requestid, o.orderdate, s.servicedate
+      FROM orders o, servicereq s
+      WHERE o.requestid = s.requestid
+        AND o.orderdate >= ?
+        AND o.orderdate < ?;
+    `;
+      connection.query(query, [start, end], (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getAcceptedQuotesByMonthYear Error:", err);
+    throw err;
+  }
+}
+
+async completeOrder(orderid, typeoforder, finalprice, billnotes) {
+  try {
+    const billid = crypto.randomUUID();
+
+    // Find the requestid and clientid
+    const requestQuery = `SELECT requestid FROM orders WHERE orderid = ?;`;
+    const requestRow = await new Promise((resolve, reject) => {
+      connection.query(requestQuery, [orderid], (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows[0]);
+      });
+    });
+
+    const clientid = await this.getClientIdByRequestId(requestRow.requestid);
+
+
+    const result = await new Promise((resolve, reject) => {
+      //create bill
+      const query = `
+        INSERT INTO bill (billid, orderid, clientid, typeoforder, finalprice, billnotes, billdate)
+        VALUES (?, ?, ?, ?, ?, ?, NOW());
+      `;
+
+      //update order status
+      const query2 = `
+        UPDATE orders
+        SET orderstatus = 1
+        WHERE orderid = ?;
+      `;
+
+      connection.query(
+        query,
+        [billid, orderid, clientid, typeoforder, finalprice, billnotes],
+        (err, insertresult) => {
+          if (err) reject(err);
+
+      connection.query(
+        query2,
+        [orderid],
+        (err, result) => {
+          if (err) reject(err);
+          else resolve({insertresult, result});
+        }
+      );
+    }
+  );
+    });
+
+    return result;
+  } catch (err) {
+    console.error("Complete Order Error:", err);
+    throw err;
+  }
+}
+
+
+// gets logged in client's bills
+async getAllBillsForClient(clientid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT billid, orderid, finalprice, billnotes, billdate
+        FROM bill
+        WHERE clientid = ?;
+      `;
+      connection.query(query, [clientid], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getAllBillsForClient Error:", err);
+    throw err;
+  }
+}
+
+// gets all unpayed bills
+async getUnpayedBills() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT billid, orderid, clientid, finalprice, billnotes, billdate
+        FROM bill
+        WHERE ispaid IS NULL;
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getUnpayedBills Error:", err);
+    throw err;
+  }
+}
+
+
+//marks bill as paid
+async payBill(billid) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        UPDATE bill
+        SET ispaid = 1,
+            paydate = NOW()
+        WHERE billid = ?;
+      `;
+      connection.query(query, [billid], (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("payBill Error:", err);
+    throw err;
+  }
+}
+
+
+async disputeBill(billid, disputes) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        UPDATE bill
+        SET disputes = ?
+        WHERE billid = ?;
+      `;
+      connection.query(query, [disputes, billid], (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("disputeBill Error:", err);
+    throw err;
+  }
+}
+
+
+async getDisputedBills() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT billid, orderid, finalprice, billnotes, billdate, disputes
+        FROM bill
+        WHERE disputes IS NOT NULL AND ispaid IS NULL;
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getDisputedBills Error:", err);
+    throw err;
+  }
+}
+
+
+// anna edit for disputes
+async editBill(billid, discounts, finalprice, explanations) {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        UPDATE bill
+        SET discounts = ?, 
+            finalprice = ?, 
+            explanations = ?
+        WHERE billid = ?;
+      `;
+      connection.query(
+        query,
+        [discounts, finalprice, explanations, billid],
+        (err, result) => {
+          if (err) reject(err);
+          else resolve(result);
+        }
+      );
+    });
+    return result;
+  } catch (err) {
+    console.error("editBill Error:", err);
+    throw err;
+  }
+}
+
+// get paid bills
+async getPaidBills() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT billid, orderid, clientid, finalprice, typeoforder, billnotes, billdate, paydate
+        FROM bill
+        WHERE ispaid = 1;
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getPaidBills Error:", err);
+    throw err;
+  }
+}
+
+// get overdue bills
+async getOverdueBills() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT billid, orderid, finalprice, billnotes, billdate
+        FROM bill
+        WHERE ispaid IS NULL
+          AND billdate < DATE_SUB(NOW(), INTERVAL 7 DAY);
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getOverdueBills Error:", err);
+    throw err;
+  }
+}
+
+// get bad clients
+async getBadClients() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT DISTINCT c.firstname, c.lastname
+        FROM client c, bill b
+        WHERE b.clientid = c.clientid
+        AND b.ispaid IS NULL
+          AND b.billdate < DATE_SUB(NOW(), INTERVAL 7 DAY)
+          AND c.clientid NOT IN (
+            SELECT clientid
+            FROM bill
+            WHERE ispaid = 1
+          );
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getBadClients Error:", err);
+    throw err;
+  }
+}
+
+// get good clients
+async getGoodClients() {
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = `
+        SELECT DISTINCT c.firstname, c.lastname
+        FROM client c
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM bill b
+          WHERE b.clientid = c.clientid
+            AND b.ispaid = 1
+            AND TIMESTAMPDIFF(HOUR, b.billdate, b.paydate) > 24
+        )
+        AND EXISTS (
+          SELECT 1
+          FROM bill b2
+          WHERE b2.clientid = c.clientid
+            AND b2.ispaid = 1
+        );
+      `;
+      connection.query(query, (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+    return result;
+  } catch (err) {
+    console.error("getGoodClients Error:", err);
+    throw err;
+  }
+}
+
+// insert photos for service request
+async insertPhotos(requestid, photo1, photo2, photo3, photo4, photo5) {
+  return new Promise((resolve, reject) => {
+    const query = `
+      INSERT INTO photos (requestid, photo1, photo2, photo3, photo4, photo5)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    connection.query(query, [requestid, photo1, photo2, photo3, photo4, photo5],
+      (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      }
+    );
+  });
+}
+
+
+
+
+
+
 
 }
 module.exports = DbService;

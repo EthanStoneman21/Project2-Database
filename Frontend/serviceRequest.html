@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Serivce Request</title>
+  <link rel ="stylesheet" href="style.css">
 </head>
 <body>
 <main>
@@ -18,14 +19,36 @@
   <label>Number of rooms:</label>
   <input placeholder="# of Rooms" type="text" id="SR-roomNum" name="roomNum" required><br><br>
 
+  <label>Your Budget:</label>
+  <input placeholder="Enter Budget" type="text" id="SR-budget" name="budget" required><br><br>
+
   <label>Preferred date/time:</label>
   <input placeholder="Year-Month-Day" type="text" id="SR-date" name="date" required><br><br>
 
   <label>Any special instructions:</label>
   <input placeholder="Type Here" type="text" id="SR-info" name="SRinfo"><br><br>
 
+  <label for="SR-photo1">Photo URL 1:</label>
+  <input type="url" id="SR-photo1" name="photo1"><br>
+
+  <label for="SR-photo2">Photo URL 2:</label>
+  <input type="url" id="SR-photo2" name="photo2"><br>
+
+  <label for="SR-photo3">Photo URL 3:</label>
+  <input type="url" id="SR-photo3" name="photo3"><br>
+
+  <label for="SR-photo4">Photo URL 4:</label>
+  <input type="url" id="SR-photo4" name="photo4"><br>
+
+  <label for="SR-photo5">Photo URL 5:</label>
+  <input type="url" id="SR-photo5" name="photo5"><br>
+
   <button type="submit">Submit</button>
 </form>
+
+<br>
+
+<button id = "back-btn">Back</button>
 
 </main>
 <script src="serviceRequest.js"></script>

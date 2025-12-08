@@ -1,7 +1,7 @@
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
     // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAllservreq')     
+    fetch('http://localhost:5050/getAllOrders')     
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
 });
@@ -31,6 +31,12 @@ respondBtn.onclick = function (){
             return;
 }
 */
+
+// when the back button is clicked
+const backBtn =  document.querySelector('#back-btn');
+backBtn.onclick = function (){
+            window.location.assign("./anna_dash.html");
+}
 
 let rowToDelete; 
 
@@ -157,92 +163,55 @@ function loadHTMLTable(data){
     */
 
     let tableHtml = "";
-    data.filter(item => item.servicestatus === 1).forEach(function ({requestid, clientname, reqaddress, cleaningtype, numofrooms, budget, servicenotes, servicestatus, servicedate}) {
+    data.filter(item => item.orderstatus === 0).forEach(function ({orderid, requestid, typeoforder, finalprice, ordernotes, orderdate}) {
         tableHtml += "<tr>";
+        tableHtml += `<td>${orderid}</td>`;
         tableHtml += `<td>${requestid}</td>`;
-        tableHtml += `<td>${clientname}</td>`;
-        tableHtml += `<td>${reqaddress}</td>`;
-        tableHtml += `<td>${cleaningtype}</td>`;
-        tableHtml += `<td>${numofrooms}</td>`;
-        tableHtml += `<td>${budget}</td>`;
-        tableHtml += `<td>${servicenotes}</td>`;
-        tableHtml += `<td>${servicestatus}</td>`;
-        tableHtml += `<td>${new Date(servicedate).toLocaleDateString()}</td>`;
-        tableHtml += `<td><button class="reject-btn" data-requestid="${requestid}">Reject</button></td>`;
-        tableHtml += `<td><button class="quote-btn" data-requestid="${requestid}">Reject</button></td>`;
+        tableHtml += `<td>${typeoforder}</td>`;
+        tableHtml += `<td>${finalprice}</td>`;
+        tableHtml += `<td>${ordernotes}</td>`;
+        tableHtml += `<td>${new Date(orderdate).toLocaleDateString()}</td>`;
+        tableHtml += "</tr>";
+        tableHtml += `<td><button class="completeOrder-btn" data-orderid="${orderid}" data-typeoforder="${typeoforder}" data-finalprice="${finalprice}">Complete</button></td>`;
         tableHtml += "</tr>";
     });
 
     table.innerHTML = tableHtml;
 
-    // when the reject button is clicked
-  document.querySelectorAll('.reject-btn').forEach(btn => {
+    document.querySelectorAll('.completeOrder-btn').forEach(btn => {
     btn.addEventListener('click', async function () {
-        const requestid = this.dataset.requestid; //same requestid
+    const orderid = this.dataset.orderid;
+    const typeoforder = this.dataset.typeoforder;
+    const finalprice = this.dataset.finalprice;
+    const note = prompt("Enter any notes:");
 
-        const messagebody = prompt("Enter rejection note.");
+    const completeOrder = {
+      orderid,
+      typeoforder,
+      finalprice,
+      billnotes: note
+    };
 
-        const rejection = {
-            messageid: crypto.randomUUID(),
-            requestid: requestid,
-            messagebody: messagebody,
-            messagedate: new Date().toISOString()
-        };
+    try {
+      const response = await fetch('http://localhost:5050/completeOrder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(completeOrder),
+        credentials: 'include'
+      });
 
-        try {
-            const response = await fetch('http://localhost:5050/serviceReject', {
-                method: 'POST',
-                headers: { 'Content-Type' : 'application/json'},
-                body: JSON.stringify(rejection)
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                alert(`Request ${requestid} rejected with note: ${messagebody}`);
-            } else {
-                alert(result.error);
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Server error");
-        }
-    })
+      const result = await response.json();
+      if (result.success) {
+        alert(`Order Complete! Bill created.`);
+      } else {
+        alert(result.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
+  });
 });
 
- // when the quote button is clicked
- document.querySelectorAll('.quote-btn').forEach(btn => {
-    btn.addEventListener('click', async function () {
-        const requestid = this.dataset.requestid;
-    
-        const adjustedPrice = prompt("Enter proposed price:");
-        const timeWindow = prompt("Enter proposed time window:");
-        const note = prompt("Enter optional note:");
-    
-        const quote = {
-            requestid,
-            adjustedPrice,
-            timeWindow,
-            note
-        };
-    
-        try {
-            const response = await fetch('http://localhost:5050/servicequote', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(quote)
-            });
-    
-            const result = await response.json();
-            if (result.success) {
-            alert(`Quote submitted for request ${requestid}`);
-            } else {
-            alert(result.error);
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Server error");
-        }
-        });
-    });
-  
+
 }

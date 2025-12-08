@@ -4,16 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anna Johnson Dashboard</title>
+  <link rel ="stylesheet" href="style.css">
 </head>
 <body>
 <main>
   <h2>Welcome Anna Johnson!</h2>
 
+  <div class="button-container">
   <button id = "servreq-btn">Service Requests</button>
 
   <br><br>
 
-  <button id = "quotes-btn">Quotes and Negotiations</button>
+  <button id = "negotiations-btn">Negotiations</button>
 
   <br><br>
 
@@ -26,25 +28,151 @@
   <br><br>
 
   <button id = "payments-btn">Payments</button>
+  </div>
 
   <h2>Searches</h2>
 
   <br><br>
+   
+  <h3>Frequent Clients</h3>
 
      <table id="table">
         <thead>
-           <th>Client Id</th>
+         <tr>
            <th>First Name</th>
            <th>Last Name</th>
-           <th>Password</th>
-           <th>Email</th>
-           <th>Address</th>
-           <th>Phone Number</th>
-           <th>Credit Card</th>
-           <th>Client Date Creation</th>
+         </tr>
         </thead>
         <tbody></tbody>
     </table>
+
+    <br><br>
+   
+  <h3>Uncommitted Clients</h3>
+
+     <table id="table1">
+        <thead>
+         <tr>
+           <th>First Name</th>
+           <th>Last Name</th>
+           <th>Total Requests</th>
+         </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <br><br>
+
+    <h3>Accepted Quotes of a Given Month</h3>
+    <form id="accepted-quotes-form">
+      <label for="month">Month:</label>
+      <select id="month" name="month">
+        <option value="1">January</option>
+        <option value="2">February</option>
+        <option value="3">March</option>
+        <option value="4">April</option>
+        <option value="5">May</option>
+        <option value="6">June</option>
+        <option value="7">July</option>
+        <option value="8">August</option>
+        <option value="9">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+      </select>
+      <label for="year">Year:</label>
+      <input type="number" id="year" name="year" min="2000" max="2100">
+
+      <br> <br>
+    
+      <button type="submit">Submit</button>
+    </form>
+    <br>
+    
+
+     <table id="table2">
+        <thead>
+         <tr>
+           <th>Order ID</th>
+           <th>Request ID</th>
+           <th>Order Date</th>
+           <th>Service Date</th>
+         </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <br><br>
+   
+    <h3>Prospective Clients</h3>
+  
+       <table id="table3">
+          <thead>
+           <tr>
+             <th>First Name</th>
+             <th>Last Name</th>
+           </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+
+      <br><br>
+      <h3>Largest Job</h3>
+  
+       <table id="table4">
+          <thead>
+           <tr>
+             <th>Request ID</th>
+             <th>Number of Rooms</th>
+             <th>Service Date</th>
+           </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+
+      <h3>Bills Overdue by 1 Week</h3>
+  
+       <table id="table5">
+          <thead>
+           <tr>
+             <th>Bill ID</th>
+             <th>Order ID</th>
+             <th>Price</th>
+             <th>Notes</th>
+             <th>Date</th>
+           </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+
+      <h3>Bad clients</h3>
+  
+       <table id="table6">
+          <thead>
+           <tr>
+             <th>First Name</th>
+             <th>Last Name</th>
+           </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+
+      <h3>Good clients</h3>
+  
+       <table id="table7">
+          <thead>
+           <tr>
+             <th>First Name</th>
+             <th>Last Name</th>
+           </tr>
+          </thead>
+          <tbody></tbody>
+      </table>
+
+      
+
+      <br><br>
+      <button id = "logout-btn">Log Out</button>
 
 </main>
 <script src="anna_dash.js"></script>
