@@ -73,8 +73,6 @@ CREATE TABLE messages (
   clientid VARCHAR(36),
   recipientid VARCHAR(36),
   requestid VARCHAR(36),
-  orderid VARCHAR(36),
-  billid VARCHAR(36),
   adjustedPrice DECIMAL(10,2),
   counternote VARCHAR(500),
   messagebody VARCHAR(500),
@@ -82,8 +80,6 @@ CREATE TABLE messages (
   FOREIGN KEY (clientid) REFERENCES client(clientid),
   FOREIGN KEY (recipientid) REFERENCES client(clientid),
   FOREIGN KEY (requestid) REFERENCES servicereq(requestid),
-  FOREIGN KEY (orderid) REFERENCES orders(orderid),
-  FOREIGN KEY (billid) REFERENCES bill(billid)
 );
 ```
 
