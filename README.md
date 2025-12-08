@@ -10,8 +10,8 @@ CREATE TABLE client (
   password VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
   address VARCHAR(255) NOT NULL,
-  phonenum VARCHAR(255) NOT NULL,
-  creditcard VARCHAR(255) NOT NULL,
+  phonenum VARCHAR(10) NOT NULL,
+  creditcard VARCHAR(20) NOT NULL,
   clientdate DATETIME
 );
 
