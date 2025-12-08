@@ -123,7 +123,7 @@ WHERE c.clientid NOT IN (
     SELECT s.clientid
     FROM servicereq s
 )
-AND c.clientid <>'c67ebd4f-5d8c-4790-88d6-db7430af4730';
+AND c.clientid <> 'c67ebd4f-5d8c-4790-88d6-db7430af4730';
 
 --largest job search
 SELECT s.requestid, s.numofrooms, s.servicedate
@@ -135,3 +135,38 @@ WHERE s.requestid = o.requestid AND o.orderstatus = 1
       WHERE s2.requestid = o2.requestid
       AND o2.orderstatus = 1
 );
+
+--overdue bills greater than 1 week
+SELECT billid, orderid, finalprice, billnotes, billdate
+        FROM bill
+        WHERE ispaid IS NULL
+          AND billdate < DATE_SUB(NOW(), INTERVAL 7 DAY);
+
+--bad clients
+SELECT DISTINCT c.firstname, c.lastname
+        FROM client c
+        JOIN bill b ON c.clientid = b.clientid
+        WHERE b.ispaid IS NULL
+          AND b.billdate < DATE_SUB(NOW(), INTERVAL 7 DAY)
+          AND c.clientid NOT IN (
+            SELECT clientid
+            FROM bill
+            WHERE ispaid = 1
+);
+      
+--good clients
+SELECT DISTINCT c.firstname, c.lastname
+        FROM client c
+        WHERE NOT EXISTS (
+          SELECT 1
+          FROM bill b
+          WHERE b.clientid = c.clientid
+            AND b.ispaid = 1
+            AND TIMESTAMPDIFF(HOUR, b.billdate, b.paydate) > 24
+        )
+        AND EXISTS (
+          SELECT 1
+          FROM bill b2
+          WHERE b2.clientid = c.clientid
+            AND b2.ispaid = 1
+        );
