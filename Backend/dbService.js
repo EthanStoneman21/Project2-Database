@@ -899,9 +899,9 @@ async getBadClients() {
     const result = await new Promise((resolve, reject) => {
       const query = `
         SELECT DISTINCT c.firstname, c.lastname
-        FROM client c
-        JOIN bill b ON c.clientid = b.clientid
-        WHERE b.ispaid IS NULL
+        FROM client c, bill b
+        WHERE b.clientid = c.clientid
+        AND b.ispaid IS NULL
           AND b.billdate < DATE_SUB(NOW(), INTERVAL 7 DAY)
           AND c.clientid NOT IN (
             SELECT clientid
