@@ -96,3 +96,9 @@ CREATE TABLE messages (
 6. Start the Backend by running ```npm start``` (Note: Make sure you are CD into the Backend).
 7. Now you can interact with the Frontend.
 ---------------------------------------
+
+Developers:
+
+Ethan Stoneman - Worked mainly on the Anna Dashboard and the service requests, orders logic, searches, and UI of the project.
+
+Aidan Demps - Worked mainly on the Clients interface and the orders to bills logic and searches.

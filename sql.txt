@@ -68,8 +68,6 @@ CREATE TABLE messages (
   clientid VARCHAR(36),
   recipientid VARCHAR(36),
   requestid VARCHAR(36),
-  orderid VARCHAR(36),
-  billid VARCHAR(36),
   adjustedPrice DECIMAL(10,2),
   counternote VARCHAR(500),
   messagebody VARCHAR(500),
@@ -77,8 +75,6 @@ CREATE TABLE messages (
   FOREIGN KEY (clientid) REFERENCES client(clientid),
   FOREIGN KEY (recipientid) REFERENCES client(clientid),
   FOREIGN KEY (requestid) REFERENCES servicereq(requestid),
-  FOREIGN KEY (orderid) REFERENCES orders(orderid),
-  FOREIGN KEY (billid) REFERENCES bill(billid)
 );
 
 --frequent clients search
@@ -140,13 +136,14 @@ WHERE s.requestid = o.requestid AND o.orderstatus = 1
 SELECT billid, orderid, finalprice, billnotes, billdate
         FROM bill
         WHERE ispaid IS NULL
-          AND billdate < DATE_SUB(NOW(), INTERVAL 7 DAY);
+          AND billdate < DATE_SUB(NOW(), INTERVAL 7 DAY
+);
 
 --bad clients
 SELECT DISTINCT c.firstname, c.lastname
-        FROM client c
-        JOIN bill b ON c.clientid = b.clientid
-        WHERE b.ispaid IS NULL
+        FROM client c, bill b
+        WHERE b.clientid = c.clientid
+        AND b.ispaid IS NULL
           AND b.billdate < DATE_SUB(NOW(), INTERVAL 7 DAY)
           AND c.clientid NOT IN (
             SELECT clientid
@@ -169,4 +166,4 @@ SELECT DISTINCT c.firstname, c.lastname
           FROM bill b2
           WHERE b2.clientid = c.clientid
             AND b2.ispaid = 1
-        );
+);
